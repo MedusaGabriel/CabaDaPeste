@@ -1,23 +1,22 @@
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyAI : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
-    public float speed = 3f; // Velocidade do inimigo
-    public float angularSpeed = 500f; // Velocidade de rotação
-    public float acceleration = 10f; // Quão rápido ele acelera
+    public float speed = 3f;
+    public float angularSpeed = 500f;
+    public float acceleration = 10f;
     private Transform player;
     private NavMeshAgent agent;
+    private Animator animator;
 
     void Start()
     {
-        // Procurar o player pela tag
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
             player = playerObj.transform;
             
-            // Ignorar colisão entre inimigo e player
             Collider playerCollider = playerObj.GetComponent<Collider>();
             Collider enemyCollider = GetComponent<Collider>();
             if (playerCollider != null && enemyCollider != null)
@@ -26,22 +25,52 @@ public class EnemyAI : MonoBehaviour
             }
         }
 
-        // Configurar o NavMesh Agent
         agent = GetComponent<NavMeshAgent>();
         if (agent != null)
         {
-            agent.speed = speed; // Controla a velocidade de movimento
-            agent.angularSpeed = angularSpeed; // Controla a rapidez na rotação
-            agent.acceleration = acceleration; // Controla quão rápido atinge a velocidade máxima
-            agent.autoBraking = false; // Evita que ele desacelere antes das curvas
+            agent.speed = speed; 
+            agent.angularSpeed = angularSpeed; 
+            agent.acceleration = acceleration; 
+            agent.autoBraking = false; 
         }
+
+        animator = GetComponent<Animator>();
     }
 
     void Update()
     {
         if (player != null && agent != null)
         {
-            agent.SetDestination(player.position); // Fazer o inimigo seguir o player
+            // Move o inimigo apenas se não estiver atacando
+            if (!animator.GetBool("IsContinuoAttacking"))
+            {
+                agent.SetDestination(player.position);
+            }
+            else
+            {
+                // Para o inimigo se estiver atacando
+                agent.isStopped = true;
+            }
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // Ativa o ataque contínuo e para o movimento
+            animator.SetBool("IsContinuoAttacking", true);
+            agent.isStopped = true; // Para o NavMeshAgent
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            // Desativa o ataque contínuo e retoma o movimento
+            animator.SetBool("IsContinuoAttacking", false);
+            agent.isStopped = false; // Retoma o NavMeshAgent
         }
     }
 }
