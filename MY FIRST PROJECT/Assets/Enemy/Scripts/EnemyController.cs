@@ -60,6 +60,7 @@ public class EnemyController : MonoBehaviour
         {
             // Ativa o ataque contínuo e para o movimento
             animator.SetBool("IsContinuoAttacking", true);
+            
             agent.isStopped = true; // Para o NavMeshAgent
         }
     }
