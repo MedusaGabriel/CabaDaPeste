@@ -41,14 +41,12 @@ public class EnemyController : MonoBehaviour
     {
         if (player != null && agent != null)
         {
-            // Move o inimigo apenas se não estiver atacando
-            if (!animator.GetBool("IsContinuoAttacking"))
+            if (!animator.GetBool("IsAttacking"))
             {
                 agent.SetDestination(player.position);
             }
             else
             {
-                // Para o inimigo se estiver atacando
                 agent.isStopped = true;
             }
         }
@@ -58,10 +56,9 @@ public class EnemyController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Ativa o ataque contínuo e para o movimento
-            animator.SetBool("IsContinuoAttacking", true);
+            animator.SetBool("IsAttacking", true);
             
-            agent.isStopped = true; // Para o NavMeshAgent
+            agent.isStopped = true; 
         }
     }
 
@@ -69,9 +66,8 @@ public class EnemyController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            // Desativa o ataque contínuo e retoma o movimento
-            animator.SetBool("IsContinuoAttacking", false);
-            agent.isStopped = false; // Retoma o NavMeshAgent
+            animator.SetBool("IsAttacking", false);
+            agent.isStopped = false; 
         }
     }
 }
