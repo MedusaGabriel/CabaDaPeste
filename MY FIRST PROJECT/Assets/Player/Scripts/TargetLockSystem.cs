@@ -95,14 +95,12 @@ public class TargetLockSystem : MonoBehaviour
             return;
         }
         
-        // Se o alvo atual foi destruído/desativado, pega o primeiro da lista
         if (currentTarget == null || !potentialTargets.Contains(currentTarget))
         {
             currentTarget = potentialTargets[0];
         }
         else
         {
-            // Encontra o índice do próximo alvo
             int currentIndex = potentialTargets.IndexOf(currentTarget);
             int nextIndex = (currentIndex + 1) % potentialTargets.Count;
             currentTarget = potentialTargets[nextIndex];

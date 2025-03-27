@@ -18,32 +18,17 @@ namespace StarterAssets
         public float RotationSmoothTime = 0.12f;
         public float SpeedChangeRate = 10.0f;
 
-        [Header("Dash")]
-        public float DashDistance = 5f;
-        public float DashDuration = 0.2f;
-        public float DashCooldown = 1f;
-        public float DashSpeedMultiplier = 2f;
-
         public AudioClip LandingAudioClip;
         public AudioClip[] FootstepAudioClips;
-        [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
-        public AudioClip DashAudioClip;
+        public CharacterController Controller => _controller;
 
+        [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
         private float _speed;
         private float _animationBlend;
         private float _targetRotation = 0.0f;
         private float _rotationVelocity;
-        private float _dashCooldownDelta;
-        private bool _isDashing;
-        private float _dashTime;
-        private Vector3 _dashDirection;
-
         private int _animIDSpeed;
         private int _animIDMotionSpeed;
-        private int _animIDDashForward;
-        private int _animIDDashBackward;
-        private int _animIDDashLeft;
-        private int _animIDDashRight;
 
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
@@ -75,7 +60,7 @@ namespace StarterAssets
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
-            
+
             _audioSource = GetComponent<AudioSource>();
             if (_audioSource == null)
             {
@@ -93,31 +78,22 @@ namespace StarterAssets
 #endif
 
             AssignAnimationIDs();
-            _dashCooldownDelta = DashCooldown;
         }
 
         private void Update()
         {
             _hasAnimator = TryGetComponent(out _animator);
-            Dash();
             Move();
-            Cooldowns();
         }
 
         private void AssignAnimationIDs()
         {
             _animIDSpeed = Animator.StringToHash("Speed");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
-            _animIDDashForward = Animator.StringToHash("DashForward");
-            _animIDDashBackward = Animator.StringToHash("DashBackward");
-            _animIDDashLeft = Animator.StringToHash("DashLeft");
-            _animIDDashRight = Animator.StringToHash("DashRight");
         }
 
         private void Move()
         {
-            if (_isDashing) return;
-
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
@@ -153,9 +129,10 @@ namespace StarterAssets
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
-            Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
+            // Atualizando MoveDirection para ser usada no Dash
+            MoveDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
-            _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime));
+            _controller.Move(MoveDirection.normalized * (_speed * Time.deltaTime));
 
             if (_hasAnimator)
             {
@@ -164,80 +141,7 @@ namespace StarterAssets
             }
         }
 
-        private void Dash()
-        {
-            if (_input.jump && _dashCooldownDelta <= 0f && !_isDashing)
-            {
-                Vector3 dashDirection;
-                
-                if (_input.move == Vector2.zero)
-                {
-                    dashDirection = transform.forward;
-                }
-                else
-                {
-                    dashDirection = new Vector3(_input.move.x, 0, _input.move.y).normalized;
-                    dashDirection = transform.TransformDirection(dashDirection);
-                }
-
-                _dashDirection = dashDirection;
-                _isDashing = true;
-                _dashTime = 0f;
-                _dashCooldownDelta = DashCooldown;
-
-                if (_hasAnimator)
-                {
-                    float angle = Vector3.SignedAngle(transform.forward, dashDirection, Vector3.up);
-
-                    if (angle > -45f && angle <= 45f)
-                    {
-                        _animator.SetTrigger(_animIDDashForward);
-                    }
-                    else if (angle > 45f && angle <= 135f)
-                    {
-                        _animator.SetTrigger(_animIDDashRight);
-                    }
-                    else if (angle > -135f && angle <= -45f)
-                    {
-                        _animator.SetTrigger(_animIDDashLeft);
-                    }
-                    else
-                    {
-                        _animator.SetTrigger(_animIDDashBackward);
-                    }
-                }
-
-                if (DashAudioClip != null)
-                {
-                    _audioSource.PlayOneShot(DashAudioClip);
-                }
-
-                _input.jump = false;
-            }
-
-            if (_isDashing)
-            {
-                _dashTime += Time.deltaTime;
-
-                if (_dashTime < DashDuration)
-                {
-                    float dashSpeed = DashDistance / DashDuration * DashSpeedMultiplier;
-                    _controller.Move(_dashDirection * dashSpeed * Time.deltaTime);
-                }
-                else
-                {
-                    _isDashing = false;
-                }
-            }
-        }
-
-        private void Cooldowns()
-        {
-            if (_dashCooldownDelta > 0f)
-            {
-                _dashCooldownDelta -= Time.deltaTime;
-            }
-        }
+        public Vector3 MoveDirection { get; private set; }
 
         private void OnFootstep(AnimationEvent animationEvent)
         {
