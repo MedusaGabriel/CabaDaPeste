@@ -43,4 +43,34 @@ public class PlayerCollision : MonoBehaviour
             }
         }
     }
+
+    public void DisableEnemyCollision()
+{
+    Collider playerCollider = GetComponent<Collider>();
+    Collider[] enemyColliders = FindObjectsOfType<Collider>();
+
+    foreach (Collider enemy in enemyColliders)
+    {
+        if (enemy.CompareTag("Enemy") || enemy.gameObject.name.StartsWith("Enemy"))
+        {
+            Physics.IgnoreCollision(playerCollider, enemy, true);
+        }
+    }
+    Debug.Log("Colisão com inimigos DESATIVADA!");
+}
+
+public void EnableEnemyCollision()
+{
+    Collider playerCollider = GetComponent<Collider>();
+    Collider[] enemyColliders = FindObjectsOfType<Collider>();
+
+    foreach (Collider enemy in enemyColliders)
+    {
+        if (enemy.CompareTag("Enemy") || enemy.gameObject.name.StartsWith("Enemy"))
+        {
+            Physics.IgnoreCollision(playerCollider, enemy, false);
+        }
+    }
+    Debug.Log("Colisão com inimigos ATIVADA!");
+}
 }

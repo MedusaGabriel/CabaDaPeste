@@ -7,6 +7,9 @@ public class PlayerHealth : MonoBehaviour
     public int currentHealth;    // Vida atual do jogador
 
     public GameObject gameOverCanvas; // Agora referenciamos a Canvas toda
+    private bool isInvincible = false; // Controla se o jogador está invencível
+    public float invincibilityDuration = 2f; // Tempo que o jogador fica invencível
+    private float invincibilityTimer = 0f;  // Temporizador para a invencibilidade
 
     void Start()
     {
@@ -16,6 +19,10 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        // Se o jogador está invencível, ele não pode levar dano
+        if (isInvincible)
+            return;
+
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
@@ -33,6 +40,16 @@ public class PlayerHealth : MonoBehaviour
 
     void Update()
     {
+        // Verifica se o jogador está invencível e se o tempo de invencibilidade acabou
+        if (isInvincible)
+        {
+            invincibilityTimer -= Time.deltaTime;
+            if (invincibilityTimer <= 0f)
+            {
+                isInvincible = false; // Desativa a invencibilidade quando o tempo acaba
+            }
+        }
+
         if (gameOverCanvas.activeSelf && Input.GetKeyDown(KeyCode.R))
         {
             RestartGame();
@@ -41,8 +58,18 @@ public class PlayerHealth : MonoBehaviour
 
     void RestartGame()
     {
-        Time.timeScale = 1f; // Retorna o tempo ao normal
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Recarrega a cena inteira
+        Time.timeScale = 1f; 
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
+    }
+
+    public void EnableInvincibility()
+    {
+        isInvincible = true; 
+        invincibilityTimer = invincibilityDuration;
+    }
+
+    public void DisableInvincibility()
+    {
+        isInvincible = false; 
     }
 }
-
