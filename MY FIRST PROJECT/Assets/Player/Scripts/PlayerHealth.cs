@@ -1,28 +1,25 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Necessário para reiniciar a cena
+using UnityEngine.SceneManagement;
+using UnityEngine.UI; // Importa a UI
 
 public class PlayerHealth : MonoBehaviour
 {
-    public int maxHealth = 100;  // Vida máxima do jogador
-    public int currentHealth;    // Vida atual do jogador
-
-    public GameObject gameOverCanvas; // Agora referenciamos a Canvas toda
-    private bool isInvincible = false; // Controla se o jogador está invencível
-    public float invincibilityDuration = 2f; // Tempo que o jogador fica invencível
-    private float invincibilityTimer = 0f;  // Temporizador para a invencibilidade
+    public int maxHealth = 100;
+    public int currentHealth;
+    public GameObject gameOverCanvas;
+    public Button restartButton; // Referência ao botão de restart
 
     void Start()
     {
-        currentHealth = maxHealth; // Define a vida inicial do jogador como a vida máxima
-        gameOverCanvas.SetActive(false); // Garante que a tela de Game Over comece desativada
+        currentHealth = maxHealth;
+        gameOverCanvas.SetActive(false);
+
+        // Garante que o botão chama o método RestartGame() quando clicado
+        restartButton.onClick.AddListener(RestartGame);
     }
 
     public void TakeDamage(int damage)
     {
-        // Se o jogador está invencível, ele não pode levar dano
-        if (isInvincible)
-            return;
-
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
@@ -34,42 +31,14 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         Debug.Log("Player morreu!");
-        gameOverCanvas.SetActive(true); // Exibe a tela de Game Over
+        gameOverCanvas.SetActive(true);
         Time.timeScale = 0f; // Pausa o jogo
     }
 
-    void Update()
+    public void RestartGame()
     {
-        // Verifica se o jogador está invencível e se o tempo de invencibilidade acabou
-        if (isInvincible)
-        {
-            invincibilityTimer -= Time.deltaTime;
-            if (invincibilityTimer <= 0f)
-            {
-                isInvincible = false; // Desativa a invencibilidade quando o tempo acaba
-            }
-        }
-
-        if (gameOverCanvas.activeSelf && Input.GetKeyDown(KeyCode.R))
-        {
-            RestartGame();
-        }
-    }
-
-    void RestartGame()
-    {
-        Time.timeScale = 1f; 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); 
-    }
-
-    public void EnableInvincibility()
-    {
-        isInvincible = true; 
-        invincibilityTimer = invincibilityDuration;
-    }
-
-    public void DisableInvincibility()
-    {
-        isInvincible = false; 
+        Debug.Log("Botão Restart foi pressionado!"); // Teste no Console
+        Time.timeScale = 1f; // Despausa o jogo
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Recarrega a cena atual
     }
 }
