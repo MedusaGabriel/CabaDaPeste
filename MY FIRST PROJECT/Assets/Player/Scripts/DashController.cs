@@ -1,61 +1,117 @@
 using UnityEngine;
 using StarterAssets;
 using System.Collections;
+using UnityEngine.UI;
 
 public class DashController : MonoBehaviour
 {
+    [Header("Dash Settings")]
+    public float dashSpeed = 10f;
+    public float dashTime = 0.5f;
+    public float dashCooldown = 2f;
+    public string dashAnimationTrigger = "Dash";
+
+    [Header("Cooldown UI")]
+    public Slider cooldownSlider;
+    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
+
     private ThirdPersonController moveScript;
-    private Animator animator;
     private CharacterController characterController;
-
-    public float dashSpeed;
-    public float dashTime;
-
+    private Animator animator;
+    private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
+    private GameObject sliderWorldObject;
 
     void Start()
     {
         moveScript = GetComponent<ThirdPersonController>();
-        animator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
+        animator = GetComponent<Animator>();
+
+        if (cooldownSlider != null)
+        {
+            cooldownSlider.gameObject.SetActive(false);
+            CreateWorldSpaceSlider();
+        }
+        else
+        {
+            Debug.LogError("Atribua um Slider UI no Inspector!");
+        }
+    }
+
+    void CreateWorldSpaceSlider()
+    {
+        sliderWorldObject = new GameObject("CooldownSliderWorld");
+        sliderWorldObject.transform.SetParent(transform);
+        sliderWorldObject.transform.localPosition = sliderOffset;
+
+        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
+
+        Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
+        worldSlider.transform.localPosition = Vector3.zero;
+        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        
+        cooldownSlider = worldSlider;
+        cooldownSlider.value = 0;
     }
 
     void Update()
     {
-        // Verifica se o jogador pressionou a tecla de dash e ainda não está dashing
-        if (Input.GetKeyDown(KeyCode.Space) && !isDashing)
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            Vector3 dashDirection = transform.forward; 
+            TryDash();
+        }
+        
+        UpdateCooldownUI();
+        FaceSliderToCamera();
+    }
 
-            // Se a tecla "S" estiver pressionada, faz o dash para trás
-            if (Input.GetKey(KeyCode.S)) 
-            {
-                dashDirection = -transform.forward;
-            }
-
-            // Começa a Coroutine do Dash
-            StartCoroutine(Dash(dashDirection));
+    void TryDash()
+    {
+        if (!isDashing && Time.time > lastDashTime + dashCooldown)
+        {
+            StartCoroutine(DashRoutine());
         }
     }
 
-    IEnumerator Dash(Vector3 direction)
+    IEnumerator DashRoutine()
     {
         isDashing = true;
+        lastDashTime = Time.time;
+        cooldownSlider.gameObject.SetActive(true);
+        cooldownSlider.value = 0;
 
-        if (direction == transform.forward)
-        {
-            animator.SetTrigger("DashForward");
-        }
+        animator.SetTrigger(dashAnimationTrigger);
 
+        Vector3 dashDirection = transform.forward;
         float startTime = Time.time;
 
         while (Time.time < startTime + dashTime)
         {
-            characterController.Move(direction * dashSpeed * Time.deltaTime);
+            characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
             yield return null;
         }
 
         isDashing = false;
     }
 
+    void UpdateCooldownUI()
+    {
+        if (cooldownSlider == null) return;
+
+        float progress = Mathf.Clamp01((Time.time - lastDashTime) / dashCooldown);
+        cooldownSlider.value = progress;
+
+        cooldownSlider.gameObject.SetActive(progress < 1f);
+    }
+
+    void FaceSliderToCamera()
+    {
+        if (sliderWorldObject != null && Camera.main != null)
+        {
+            sliderWorldObject.transform.forward = -Camera.main.transform.forward;
+        }
+    }
 }
