@@ -17,8 +17,14 @@ public class TargetLockSystem : MonoBehaviour
     
     private Transform currentTarget;
     private List<Transform> potentialTargets = new List<Transform>();
-    private bool isLocked = false;
+    public bool isLocked = false;
     private GameObject currentIndicator;
+    private Animator _animator;
+
+    private void Start()
+    {
+        _animator = GetComponent<Animator>();
+    }
 
     private void Update()
     {
@@ -33,6 +39,8 @@ public class TargetLockSystem : MonoBehaviour
         {
             ClearLock();
         }
+
+        UpdateAnimator();
     }
 
     private void HandleTargetLockInput()
@@ -182,6 +190,14 @@ public class TargetLockSystem : MonoBehaviour
         isLocked = false;
         currentTarget = null;
         potentialTargets.Clear();
+    }
+
+    private void UpdateAnimator()
+    {
+        if (_animator != null)
+        {
+            _animator.SetBool("IsLocked", isLocked);
+        }
     }
 
     private void OnDrawGizmosSelected()
