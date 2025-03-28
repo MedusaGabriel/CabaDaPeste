@@ -7,14 +7,17 @@ public class TargetLockSystem : MonoBehaviour
     public float lockRange = 10f;
     public LayerMask enemyLayer;
     public KeyCode lockKey = KeyCode.Tab;
+    private float lockKeyHoldTime = 0f;
+    private bool isHoldingLockKey = false;
+    private float holdThreshold = 1f;
     public string enemyTag = "Enemy";
-    
+
     [Header("Marcador Visual")]
     [Tooltip("Arraste um prefab personalizado ou deixe vazio para usar o padrão")]
     public GameObject lockOnIndicator;
     public Color defaultIndicatorColor = Color.red;
     public float yOffset = 2f;
-    
+
     private Transform currentTarget;
     private List<Transform> potentialTargets = new List<Transform>();
     public bool isLocked = false;
@@ -29,7 +32,7 @@ public class TargetLockSystem : MonoBehaviour
     private void Update()
     {
         HandleTargetLockInput();
-        
+
         if (isLocked && currentTarget != null)
         {
             FaceTarget();
@@ -44,8 +47,27 @@ public class TargetLockSystem : MonoBehaviour
     }
 
     private void HandleTargetLockInput()
+{
+    if (Input.GetKeyDown(lockKey))
     {
-        if (Input.GetKeyDown(lockKey))
+        isHoldingLockKey = true;
+        lockKeyHoldTime = 0f;
+    }
+
+    if (Input.GetKey(lockKey) && isHoldingLockKey)
+    {
+        lockKeyHoldTime += Time.deltaTime;
+        
+        if (lockKeyHoldTime >= holdThreshold)
+        {
+            ClearLock();
+            isHoldingLockKey = false;
+        }
+    }
+
+    if (Input.GetKeyUp(lockKey))
+    {
+        if (isHoldingLockKey && lockKeyHoldTime < holdThreshold)
         {
             if (!isLocked)
             {
@@ -56,12 +78,15 @@ public class TargetLockSystem : MonoBehaviour
                 SwitchTarget();
             }
         }
+        
+        isHoldingLockKey = false;
     }
+}
 
     private void FindAndLockTarget()
     {
         RefreshTargetList();
-        
+
         if (potentialTargets.Count > 0)
         {
             currentTarget = potentialTargets[0];
@@ -69,14 +94,19 @@ public class TargetLockSystem : MonoBehaviour
             CreateLockIndicator();
         }
     }
-
+    private void LateUpdate()
+    {
+        if (isLocked && (currentTarget == null || !currentTarget.gameObject.activeInHierarchy))
+        {
+            ClearLock();
+        }
+    }
     private void RefreshTargetList()
     {
         potentialTargets.Clear();
-        
-        // Encontra todos os inimigos ativos no pool
+
         Collider[] enemiesInRange = Physics.OverlapSphere(transform.position, lockRange, enemyLayer);
-        
+
         foreach (Collider enemy in enemiesInRange)
         {
             if (enemy.CompareTag(enemyTag) && enemy.gameObject.activeInHierarchy)
@@ -84,9 +114,9 @@ public class TargetLockSystem : MonoBehaviour
                 potentialTargets.Add(enemy.transform);
             }
         }
-        
+
         // Ordena por proximidade
-        potentialTargets.Sort((a, b) => 
+        potentialTargets.Sort((a, b) =>
             Vector3.Distance(transform.position, a.position).CompareTo(
             Vector3.Distance(transform.position, b.position)));
     }
@@ -94,15 +124,15 @@ public class TargetLockSystem : MonoBehaviour
     private void SwitchTarget()
     {
         if (potentialTargets.Count == 0) return;
-        
+
         RefreshTargetList();
-        
+
         if (potentialTargets.Count == 0)
         {
             ClearLock();
             return;
         }
-        
+
         if (currentTarget == null || !potentialTargets.Contains(currentTarget))
         {
             currentTarget = potentialTargets[0];
@@ -113,17 +143,17 @@ public class TargetLockSystem : MonoBehaviour
             int nextIndex = (currentIndex + 1) % potentialTargets.Count;
             currentTarget = potentialTargets[nextIndex];
         }
-        
+
         CreateLockIndicator();
     }
 
     private void FaceTarget()
     {
         if (currentTarget == null) return;
-        
+
         Vector3 directionToTarget = currentTarget.position - transform.position;
         directionToTarget.y = 0;
-        
+
         if (directionToTarget != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(directionToTarget);
@@ -141,9 +171,9 @@ public class TargetLockSystem : MonoBehaviour
 
         if (lockOnIndicator != null)
         {
-            currentIndicator = Instantiate(lockOnIndicator, 
-                                       currentTarget.position + Vector3.up * yOffset, 
-                                       Quaternion.identity, 
+            currentIndicator = Instantiate(lockOnIndicator,
+                                       currentTarget.position + Vector3.up * yOffset,
+                                       Quaternion.identity,
                                        currentTarget);
         }
         else
@@ -157,18 +187,17 @@ public class TargetLockSystem : MonoBehaviour
         currentIndicator = new GameObject("DefaultLockIndicator");
         currentIndicator.transform.SetParent(currentTarget);
         currentIndicator.transform.position = currentTarget.position + Vector3.up * yOffset;
-        
-        // Cria um quad com material simples para 3D
+
         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
         quad.transform.SetParent(currentIndicator.transform);
         quad.transform.localPosition = Vector3.zero;
         quad.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        quad.GetComponent<Renderer>().material = new Material(Shader.Find("Unlit/Color")) {
+        quad.GetComponent<Renderer>().material = new Material(Shader.Find("Unlit/Color"))
+        {
             color = defaultIndicatorColor
         };
         Destroy(quad.GetComponent<Collider>());
-        
-        // Ajusta escala
+
         quad.transform.localScale = Vector3.one * 0.5f;
     }
 
@@ -186,17 +215,23 @@ public class TargetLockSystem : MonoBehaviour
         {
             Destroy(currentIndicator);
         }
-        
+
         isLocked = false;
         currentTarget = null;
         potentialTargets.Clear();
+
+        if (_animator != null)
+        {
+            _animator.SetBool("IsLocked", false);
+        }
     }
 
     private void UpdateAnimator()
     {
         if (_animator != null)
         {
-            _animator.SetBool("IsLocked", isLocked);
+            bool isStop = _animator.GetBool("IsStop");
+            _animator.SetBool("IsLocked", isLocked && !isStop);
         }
     }
 
