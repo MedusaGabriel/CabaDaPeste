@@ -87,7 +87,15 @@ namespace StarterAssets
 
             if (_hasAnimator)
             {
-            _animator.SetBool("IsStop", _input.move == Vector2.zero);
+                _animator.SetBool("IsStop", _input.move == Vector2.zero);
+            }
+            {
+                if (transform.position.y >= 4.114f)
+                {
+                    Vector3 correctedPosition = new Vector3(transform.position.x, 4.114f, transform.position.z);
+                    transform.position = correctedPosition;
+                    Debug.Log("A posição Y do jogador foi corrigida para 4.114!");
+                }
             }
         }
 
@@ -167,5 +175,6 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
             }
         }
+  
     }
 }

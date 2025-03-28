@@ -10,6 +10,7 @@ public class DashController : MonoBehaviour
     public float dashTime = 0.5f;
     public float dashCooldown = 2f;
     public string dashAnimationTrigger = "Dash";
+    public string dashBackwardTrigger = "DashBackward"; // Novo trigger para o dash para trás
 
     [Header("Cooldown UI")]
     public Slider cooldownSlider;
@@ -21,6 +22,9 @@ public class DashController : MonoBehaviour
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
     private GameObject sliderWorldObject;
+
+    // Variável para verificar se o player está travado no alvo
+    private bool isLocked;
 
     void Start()
     {
@@ -39,26 +43,10 @@ public class DashController : MonoBehaviour
         }
     }
 
-    void CreateWorldSpaceSlider()
-    {
-        sliderWorldObject = new GameObject("CooldownSliderWorld");
-        sliderWorldObject.transform.SetParent(transform);
-        sliderWorldObject.transform.localPosition = sliderOffset;
-
-        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
-
-        Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
-        worldSlider.transform.localPosition = Vector3.zero;
-        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-        
-        cooldownSlider = worldSlider;
-        cooldownSlider.value = 0;
-    }
-
     void Update()
     {
+        isLocked = animator.GetBool("IsLocked");
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             TryDash();
@@ -83,9 +71,19 @@ public class DashController : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0;
 
-        animator.SetTrigger(dashAnimationTrigger);
+        Vector3 dashDirection;
+        
+        if (isLocked) 
+        {
+            dashDirection = -transform.forward;
+            animator.SetTrigger(dashBackwardTrigger);
+        } 
+        else 
+        {
+            dashDirection = transform.forward;
+            animator.SetTrigger(dashAnimationTrigger);
+        }
 
-        Vector3 dashDirection = transform.forward;
         float startTime = Time.time;
 
         while (Time.time < startTime + dashTime)
@@ -113,5 +111,23 @@ public class DashController : MonoBehaviour
         {
             sliderWorldObject.transform.forward = -Camera.main.transform.forward;
         }
+    }
+
+    void CreateWorldSpaceSlider()
+    {
+        sliderWorldObject = new GameObject("CooldownSliderWorld");
+        sliderWorldObject.transform.SetParent(transform);
+        sliderWorldObject.transform.localPosition = sliderOffset;
+
+        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
+
+        Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
+        worldSlider.transform.localPosition = Vector3.zero;
+        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+        
+        cooldownSlider = worldSlider;
+        cooldownSlider.value = 0;
     }
 }
