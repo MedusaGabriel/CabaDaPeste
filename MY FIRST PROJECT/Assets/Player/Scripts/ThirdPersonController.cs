@@ -89,16 +89,8 @@ namespace StarterAssets
             {
                 _animator.SetBool("IsStop", _input.move == Vector2.zero);
             }
-            {
-                if (transform.position.y >= 4.114f)
-                {
-                    Vector3 correctedPosition = new Vector3(transform.position.x, 4.114f, transform.position.z);
-                    transform.position = correctedPosition;
-                    Debug.Log("A posição Y do jogador foi corrigida para 4.114!");
-                }
-            }
-        }
 
+        }
         private void AssignAnimationIDs()
         {
             _animIDSpeed = Animator.StringToHash("Speed");
@@ -142,7 +134,6 @@ namespace StarterAssets
                 transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
-            // Atualizando MoveDirection para ser usada no Dash
             MoveDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
             _controller.Move(MoveDirection.normalized * (_speed * Time.deltaTime));
@@ -175,6 +166,6 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
             }
         }
-  
+
     }
 }

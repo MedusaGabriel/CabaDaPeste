@@ -89,27 +89,6 @@ public class PlayerCollision : MonoBehaviour
                 }
             }
         }
-        StartCoroutine(AdjustPlayerPositionAfterCollision());
         Debug.Log("Colisão com inimigos ATIVADA!");
-    }
-
-    IEnumerator AdjustPlayerPositionAfterCollision()
-    {
-        yield return null;
-
-        Collider playerCollider = GetComponent<Collider>();
-        Collider[] enemyColliders = FindObjectsOfType<Collider>();
-
-        foreach (Collider enemy in enemyColliders)
-        {
-            if (enemy.CompareTag("Enemy") || enemy.gameObject.name.StartsWith("Enemy"))
-            {
-                if (playerCollider.bounds.Intersects(enemy.bounds))
-                {
-                    Vector3 directionAwayFromEnemy = (transform.position - enemy.transform.position).normalized;
-                    transform.position += directionAwayFromEnemy * 0.1f;
-                }
-            }
-        }
     }
 }

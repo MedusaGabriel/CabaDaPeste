@@ -10,7 +10,7 @@ public class DashController : MonoBehaviour
     public float dashTime = 0.5f;
     public float dashCooldown = 2f;
     public string dashAnimationTrigger = "Dash";
-    public string dashBackwardTrigger = "DashBackward"; // Novo trigger para o dash para trás
+    public string dashBackwardTrigger = "DashBackward"; 
 
     [Header("Cooldown UI")]
     public Slider cooldownSlider;
@@ -23,7 +23,6 @@ public class DashController : MonoBehaviour
     private bool isDashing = false;
     private GameObject sliderWorldObject;
 
-    // Variável para verificar se o player está travado no alvo
     private bool isLocked;
 
     void Start()
@@ -71,6 +70,7 @@ public class DashController : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0;
 
+
         Vector3 dashDirection;
         
         if (isLocked) 
@@ -91,7 +91,7 @@ public class DashController : MonoBehaviour
             characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
             yield return null;
         }
-
+        
         isDashing = false;
     }
 
