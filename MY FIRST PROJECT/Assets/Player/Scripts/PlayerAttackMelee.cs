@@ -5,6 +5,7 @@ public class PlayerAttack : MonoBehaviour
     public BoxCollider attackCollider;
     public float attackDamage = 20f;  // Valor de dano configurável
     public Animator playerAnimator;   // Referência ao Animator do jogador
+    public bool CanMove { get; private set; } = true;
 
     private void Start()
     {
@@ -28,18 +29,23 @@ public class PlayerAttack : MonoBehaviour
     private void Attack()
     {
         playerAnimator.SetTrigger("PlayerMelee");
+
         Debug.Log("Ataque iniciado!");
     }
 
     public void EnableCollider()
     {
         attackCollider.enabled = true;
+        CanMove = false;
+        playerAnimator.SetBool("IsAttacking", true);
         Debug.Log("Collider Ativado!");
     }
 
     public void DisableCollider()
     {
         attackCollider.enabled = false;
+        CanMove = true;
+        playerAnimator.SetBool("IsAttacking", false);
         Debug.Log("Collider Desativado!");
     }
 

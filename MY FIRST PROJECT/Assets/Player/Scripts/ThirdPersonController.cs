@@ -22,6 +22,8 @@ namespace StarterAssets
         public AudioClip[] FootstepAudioClips;
         public CharacterController Controller => _controller;
 
+        public PlayerAttack playerAttack;
+
         [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
         private float _speed;
         private float _animationBlend;
@@ -29,6 +31,8 @@ namespace StarterAssets
         private float _rotationVelocity;
         private int _animIDSpeed;
         private int _animIDMotionSpeed;
+
+        private bool _canRotate = true;
 
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
@@ -41,6 +45,9 @@ namespace StarterAssets
 
         private const float _threshold = 0.01f;
         private bool _hasAnimator;
+
+
+        [SerializeField] private PlayerAttack _playerAttack;
 
         private bool IsCurrentDeviceMouse
         {
@@ -65,6 +72,10 @@ namespace StarterAssets
             if (_audioSource == null)
             {
                 _audioSource = gameObject.AddComponent<AudioSource>();
+            }
+            if (_playerAttack == null)
+            {
+                _playerAttack = GetComponent<PlayerAttack>();
             }
         }
 
@@ -99,6 +110,21 @@ namespace StarterAssets
 
         private void Move()
         {
+            // Se não pode mover, define velocidade como zero e sai do método
+            if (!_playerAttack.CanMove)
+            {
+                _speed = 0f;
+                _animationBlend = 0f;
+
+                if (_hasAnimator)
+                {
+                    _animator.SetFloat(_animIDSpeed, 0f);
+                    _animator.SetFloat(_animIDMotionSpeed, 0f);
+                }
+                return;
+            }
+
+            // Código normal de movimento abaixo (só executa se CanMove for true)
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
@@ -127,7 +153,7 @@ namespace StarterAssets
             if (_input.move != Vector2.zero)
             {
                 _targetRotation = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg +
-                                  _mainCamera.transform.eulerAngles.y;
+                                 _mainCamera.transform.eulerAngles.y;
                 float rotation = Mathf.SmoothDampAngle(transform.eulerAngles.y, _targetRotation, ref _rotationVelocity,
                     RotationSmoothTime);
 
