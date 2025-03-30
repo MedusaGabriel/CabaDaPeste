@@ -110,7 +110,6 @@ namespace StarterAssets
 
         private void Move()
         {
-            // Se não pode mover, define velocidade como zero e sai do método
             if (!_playerAttack.CanMove)
             {
                 _speed = 0f;
@@ -124,7 +123,6 @@ namespace StarterAssets
                 return;
             }
 
-            // Código normal de movimento abaixo (só executa se CanMove for true)
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;

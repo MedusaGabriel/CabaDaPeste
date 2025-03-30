@@ -10,10 +10,17 @@ public class PlayerAttack : MonoBehaviour
     private void Start()
     {
         attackCollider.enabled = false;
-        
+
         if (playerAnimator == null)
         {
             playerAnimator = GetComponent<Animator>();
+        }
+
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
         }
     }
 
@@ -23,7 +30,7 @@ public class PlayerAttack : MonoBehaviour
         {
             Attack();
         }
-        
+
     }
 
     private void Attack()
@@ -51,7 +58,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Enemy")) 
+        if (other.CompareTag("Enemy"))
         {
             EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
