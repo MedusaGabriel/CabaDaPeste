@@ -33,3 +33,5 @@ public class BasicRigidBodyPush : MonoBehaviour
 		body.AddForce(pushDir * strength, ForceMode.Impulse);
 	}
 }
+
+// fix: bug
