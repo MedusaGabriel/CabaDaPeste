@@ -3,8 +3,8 @@ using UnityEngine;
 public class PlayerAttack : MonoBehaviour
 {
     public BoxCollider attackCollider;
-    public float attackDamage = 20f;  // Valor de dano configurável
-    public Animator playerAnimator;   // Referência ao Animator do jogador
+    public float attackDamage = 20f; 
+    public Animator playerAnimator; 
     public bool CanMove { get; private set; } = true;
 
     private void Start()
@@ -26,7 +26,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetKey(KeyCode.E))
         {
             Attack();
         }
