@@ -1,5 +1,4 @@
 using UnityEngine;
-using StarterAssets;
 using System.Collections;
 using UnityEngine.UI;
 
@@ -10,14 +9,13 @@ public class DashController : MonoBehaviour
     public float dashTime = 0.5f;
     public float dashCooldown = 2f;
     public string dashAnimationTrigger = "Dash";
-    public string dashBackwardTrigger = "DashBackward"; 
+    public string dashBackwardTrigger = "DashBackward";
 
     [Header("Cooldown UI")]
     public Slider cooldownSlider;
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
 
-    private ThirdPersonController moveScript;
-    private CharacterController characterController;
+    private Rigidbody _rigidbody;
     private Animator animator;
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
@@ -27,8 +25,7 @@ public class DashController : MonoBehaviour
 
     void Start()
     {
-        moveScript = GetComponent<ThirdPersonController>();
-        characterController = GetComponent<CharacterController>();
+        _rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
 
         if (cooldownSlider != null)
@@ -50,7 +47,7 @@ public class DashController : MonoBehaviour
         {
             TryDash();
         }
-        
+
         UpdateCooldownUI();
         FaceSliderToCamera();
     }
@@ -70,15 +67,14 @@ public class DashController : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0;
 
-
         Vector3 dashDirection;
-        
-        if (isLocked) 
+
+        if (isLocked)
         {
             dashDirection = -transform.forward;
             animator.SetTrigger(dashBackwardTrigger);
-        } 
-        else 
+        }
+        else
         {
             dashDirection = transform.forward;
             animator.SetTrigger(dashAnimationTrigger);
@@ -88,10 +84,11 @@ public class DashController : MonoBehaviour
 
         while (Time.time < startTime + dashTime)
         {
-            characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
+            _rigidbody.linearVelocity = dashDirection * dashSpeed;
             yield return null;
         }
-        
+
+        _rigidbody.linearVelocity = Vector3.zero;
         isDashing = false;
     }
 
@@ -126,7 +123,7 @@ public class DashController : MonoBehaviour
         Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
         worldSlider.transform.localPosition = Vector3.zero;
         worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-        
+
         cooldownSlider = worldSlider;
         cooldownSlider.value = 0;
     }
