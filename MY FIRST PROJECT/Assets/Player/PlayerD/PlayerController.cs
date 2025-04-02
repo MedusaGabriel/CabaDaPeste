@@ -1,5 +1,5 @@
 using UnityEngine;
-using PlayerInputS; // Namespace correto
+using PlayerInputS;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -22,21 +22,26 @@ public class PlayerController : MonoBehaviour
     private int _animIDSpeed;
     private int _animIDMotionSpeed;
     private bool _hasAnimator;
-    private PlayerInputSystem _input; // Corrigido para usar a classe PlayerInputSystem
+    private PlayerInputSystem _input;
+    private PlayerAttackMelee _playerAttack;
+
 
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        _rigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
         _hasAnimator = TryGetComponent(out _animator);
         AssignAnimationIDs();
 
         _input = GetComponent<PlayerInputSystem>();
+
+        _playerAttack = GetComponent<PlayerAttackMelee>();
+
     }
 
     private void Update()
     {
+        Rotate();
         Move();
     }
 
@@ -46,25 +51,18 @@ public class PlayerController : MonoBehaviour
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
-    private void Move()
+    private void Rotate()
     {
+
+        if (_playerAttack != null && _playerAttack.IsAttacking)
+        {
+            return;
+        }
         Vector2 input = _input.move;
         float moveX = input.x;
         float moveZ = input.y;
 
-        bool isSprinting = _input.sprint;
-        float targetSpeed = isSprinting ? SprintSpeed : MoveSpeed;
-
-        // Se não há input, velocidade = 0
-        if (moveX == 0 && moveZ == 0)
-        {
-            targetSpeed = 0.0f;
-        }
-
-        // Calcula direção sem depender de rotação
         Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
-
-        // Rotação suave (somente visual)
         if (rawDirection != Vector3.zero)
         {
             _targetRotation = Mathf.Atan2(rawDirection.x, rawDirection.z) * Mathf.Rad2Deg;
@@ -76,21 +74,38 @@ public class PlayerController : MonoBehaviour
             );
             transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
         }
+    }
 
-        // Interpolação de velocidade
+    private void Move()
+    {
+        if (_playerAttack != null && _playerAttack.IsAttacking)
+        {
+            return;
+        }
+        
+        Vector2 input = _input.move;
+        float moveX = input.x;
+        float moveZ = input.y;
+
+        bool isSprinting = _input.sprint;
+        float targetSpeed = isSprinting ? SprintSpeed : MoveSpeed;
+
+        if (moveX == 0 && moveZ == 0)
+        {
+            targetSpeed = 0.0f;
+        }
+
         _speed = Mathf.Lerp(_speed, targetSpeed, Time.deltaTime * SpeedChangeRate);
 
-        // Se a velocidade está próxima de zero e não há input, força _speed = 0
         if (targetSpeed == 0f && _speed < 0.01f)
         {
             _speed = 0f;
         }
 
-        // Movimento imediato no corpo físico
+        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
         Vector3 movement = rawDirection * (_speed * Time.deltaTime);
         _rigidbody.MovePosition(transform.position + movement);
 
-        // Atualiza animações
         if (_hasAnimator)
         {
             float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : rawDirection.magnitude;
