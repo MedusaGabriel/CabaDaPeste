@@ -82,7 +82,7 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
-        
+
         Vector2 input = _input.move;
         float moveX = input.x;
         float moveZ = input.y;
@@ -92,7 +92,8 @@ public class PlayerController : MonoBehaviour
 
         if (moveX == 0 && moveZ == 0)
         {
-            targetSpeed = 0.0f;
+            targetSpeed = 0.0f; 
+            _input.SprintInput(false);
         }
 
         _speed = Mathf.Lerp(_speed, targetSpeed, Time.deltaTime * SpeedChangeRate);
@@ -100,6 +101,7 @@ public class PlayerController : MonoBehaviour
         if (targetSpeed == 0f && _speed < 0.01f)
         {
             _speed = 0f;
+
         }
 
         Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;

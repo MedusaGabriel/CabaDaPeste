@@ -36,7 +36,7 @@ public class PlayerTarget : MonoBehaviour
             }
             else
             {
-                SwitchTarget();
+                SwitchTarget(); 
             }
         }
 

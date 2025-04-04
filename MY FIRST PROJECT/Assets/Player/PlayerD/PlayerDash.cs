@@ -24,11 +24,14 @@ public class PlayerDash : MonoBehaviour
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
     private GameObject sliderWorldObject;
+    private PlayerAttackMelee _playerAttackMelee;
 
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+
+        _playerAttackMelee = GetComponent<PlayerAttackMelee>();
 
         if (cooldownSlider != null)
         {
@@ -45,7 +48,14 @@ public class PlayerDash : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            TryDash();
+            if (_playerAttackMelee != null && _playerAttackMelee.IsAttacking)
+            {
+                return;
+            }
+            else
+            {
+                TryDash();
+            }
         }
 
         UpdateCooldownUI();
@@ -67,8 +77,7 @@ public class PlayerDash : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0;
 
-        // Exemplo: +1 para frente, -1 para trás
-        float dashValue = 1f; // Ajuste conforme sua lógica de alvo
+        float dashValue = 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
