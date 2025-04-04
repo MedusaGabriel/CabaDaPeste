@@ -56,9 +56,20 @@ public class PlayerDash : MonoBehaviour
                 TryDash();
             }
         }
+        if (!_playerTarget.IsTargeting)
+        {
+            FaceSliderToCamera();
+        }
 
         UpdateCooldownUI();
-        FaceSliderToCamera();
+    }
+        void LateUpdate()
+    {
+        if (sliderWorldObject != null)
+        {
+            sliderWorldObject.transform.position = transform.position + sliderOffset;
+        }
+
     }
 
     void TryDash()
@@ -83,7 +94,14 @@ public class PlayerDash : MonoBehaviour
         float startTime = Time.time;
         while (Time.time < startTime + dashTime)
         {
-            _rigidbody.linearVelocity = transform.forward * (dashSpeed * dashValue);
+            if (dashValue == 2f)
+            {
+                _rigidbody.linearVelocity = -transform.forward * (dashSpeed * dashValue);
+            }
+            else
+            {
+                _rigidbody.linearVelocity = transform.forward * (dashSpeed * dashValue);
+            }
             yield return null;
         }
 
