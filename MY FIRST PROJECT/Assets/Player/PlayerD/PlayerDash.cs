@@ -8,11 +8,7 @@ public class PlayerDash : MonoBehaviour
     public float dashSpeed = 10f;
     public float dashTime = 0.5f;
     public float dashCooldown = 2f;
-
-    // Parâmetro único para o Blend Tree
-    //  1 => dash para frente; -1 => dash para trás
     public string dashParam = "Dash";
-    // Trigger que chama o dash no Animator
     public string dashTrigger = "IsDash";
 
     [Header("Cooldown UI")]
@@ -25,6 +21,8 @@ public class PlayerDash : MonoBehaviour
     private bool isDashing = false;
     private GameObject sliderWorldObject;
     private PlayerAttackMelee _playerAttackMelee;
+    private PlayerTarget _playerTarget;
+
 
     void Start()
     {
@@ -32,6 +30,7 @@ public class PlayerDash : MonoBehaviour
         animator = GetComponent<Animator>();
 
         _playerAttackMelee = GetComponent<PlayerAttackMelee>();
+        _playerTarget = GetComponent<PlayerTarget>();
 
         if (cooldownSlider != null)
         {
@@ -77,7 +76,7 @@ public class PlayerDash : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0;
 
-        float dashValue = 1f;
+        float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
