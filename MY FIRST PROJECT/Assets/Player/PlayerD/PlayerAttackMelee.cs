@@ -2,17 +2,31 @@ using UnityEngine;
 
 public class PlayerAttackMelee : MonoBehaviour
 {
-    public BoxCollider attackCollider;
+    [Header("Referência para a Arma")]
+    [Tooltip("Arraste aqui o objeto da arma que contém o BoxCollider.")]
+    public GameObject weaponObject;
+
     public float attackDamage = 20f;
     public Animator playerAnimator;
     public bool CanMove { get; private set; } = true;
-
-    // Novo campo para impedir ataques duplos e travar rotação
     public bool IsAttacking { get; private set; } = false;
+
+    private BoxCollider _weaponCollider;
+
+    private void Start()
+    {
+        if (weaponObject != null)
+        {
+            _weaponCollider = weaponObject.GetComponent<BoxCollider>();
+            if (_weaponCollider != null)
+            {
+                _weaponCollider.enabled = false; 
+            }
+        }
+    }
 
     private void Update()
     {
-        // Muda de GetKey para GetKeyDown + checagem de IsAttacking
         if (Input.GetKeyDown(KeyCode.E) && !IsAttacking)
         {
             Attack();
@@ -23,25 +37,27 @@ public class PlayerAttackMelee : MonoBehaviour
     {
         IsAttacking = true;
         playerAnimator.SetTrigger("PlayerMelee");
-        Debug.Log("Ataque iniciado!");
     }
 
     public void EnableCollider()
     {
-        attackCollider.enabled = true;
+        if (_weaponCollider != null)
+        {
+            _weaponCollider.enabled = true;
+        }
         CanMove = false;
         playerAnimator.SetBool("IsAttacking", true);
-        Debug.Log("Collider Ativado!");
     }
 
     public void DisableCollider()
     {
-        attackCollider.enabled = false;
+        if (_weaponCollider != null)
+        {
+            _weaponCollider.enabled = false;
+        }
         CanMove = true;
         playerAnimator.SetBool("IsAttacking", false);
-        // Libera ataque e rotação ao fim da animação
         IsAttacking = false;
-        Debug.Log("Collider Desativado!");
     }
 
     private void OnTriggerEnter(Collider other)
@@ -52,7 +68,6 @@ public class PlayerAttackMelee : MonoBehaviour
             if (enemyHealth != null)
             {
                 enemyHealth.TakeDamage(attackDamage);
-                Debug.Log("Inimigo atingido! Dano causado: " + attackDamage);
             }
         }
     }

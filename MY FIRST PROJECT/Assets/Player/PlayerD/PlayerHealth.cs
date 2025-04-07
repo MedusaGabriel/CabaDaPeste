@@ -31,7 +31,7 @@ public class PlayerHealth : MonoBehaviour
             Debug.LogError("Atribua um Slider UI no Inspector!");
         }
 
-        restartButton.onClick.AddListener(RestartGame);
+        // restartButton.onClick.AddListener(RestartGame);
     }
 
     void Update()
