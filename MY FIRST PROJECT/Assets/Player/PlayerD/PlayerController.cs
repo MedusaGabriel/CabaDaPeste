@@ -37,6 +37,12 @@ public class PlayerController : MonoBehaviour
 
         _playerAttack = GetComponent<PlayerAttackMelee>();
 
+        Physics.IgnoreLayerCollision(
+        LayerMask.NameToLayer("Player"),
+        LayerMask.NameToLayer("Enemy"),
+        false
+    );
+
     }
 
     private void Update()

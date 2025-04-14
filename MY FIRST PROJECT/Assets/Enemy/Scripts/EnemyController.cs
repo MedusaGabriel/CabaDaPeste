@@ -6,9 +6,13 @@ public class EnemyController : MonoBehaviour
     public float speed = 3f;
     public float angularSpeed = 500f;
     public float acceleration = 10f;
+    public float attackCooldown = 1.5f; 
+    private float lastAttackTime = 0f;
+
     private Transform player;
     private NavMeshAgent agent;
     private Animator animator;
+    private EnemyHit enemyHit;
 
     void Start()
     {
@@ -16,7 +20,7 @@ public class EnemyController : MonoBehaviour
         if (playerObj != null)
         {
             player = playerObj.transform;
-            
+
             Collider playerCollider = playerObj.GetComponent<Collider>();
             Collider enemyCollider = GetComponent<Collider>();
             if (playerCollider != null && enemyCollider != null)
@@ -28,13 +32,14 @@ public class EnemyController : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         if (agent != null)
         {
-            agent.speed = speed; 
-            agent.angularSpeed = angularSpeed; 
-            agent.acceleration = acceleration; 
-            agent.autoBraking = false; 
+            agent.speed = speed;
+            agent.angularSpeed = angularSpeed;
+            agent.acceleration = acceleration;
+            agent.autoBraking = false;
         }
 
         animator = GetComponent<Animator>();
+        enemyHit = GetComponent<EnemyHit>();
     }
 
     void Update()
@@ -57,8 +62,18 @@ public class EnemyController : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             animator.SetBool("IsAttacking", true);
-            
-            agent.isStopped = true; 
+            agent.isStopped = true;
+
+            // Tenta aplicar dano ao jogador
+            TryDealDamage(collision.gameObject);
+        }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            TryDealDamage(collision.gameObject);
         }
     }
 
@@ -67,7 +82,21 @@ public class EnemyController : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             animator.SetBool("IsAttacking", false);
-            agent.isStopped = false; 
+            agent.isStopped = false;
+        }
+    }
+
+    private void TryDealDamage(GameObject playerObj)
+    {
+        if (Time.time >= lastAttackTime + attackCooldown)
+        {
+            PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
+            if (playerHealth != null && enemyHit != null)
+            {
+                int damage = enemyHit.CalculateDamage();
+                playerHealth.TakeDamage(damage);
+                lastAttackTime = Time.time; // Atualiza o tempo do último ataque
+            }
         }
     }
 }

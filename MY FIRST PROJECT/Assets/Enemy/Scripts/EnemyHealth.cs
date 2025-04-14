@@ -10,7 +10,7 @@ public class EnemyHealth : MonoBehaviour
     [Header("Health UI")]
     public Slider healthSlider;
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
-
+    public Animator enemyAnimator;
     private GameObject sliderWorldObject;
 
     void Start()
@@ -84,7 +84,12 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.SetTrigger("Die");
+        }
+
         Debug.Log("Inimigo morreu!");
-        Destroy(gameObject);  
+        Destroy(gameObject);
     }
 }
