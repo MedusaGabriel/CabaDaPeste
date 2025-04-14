@@ -5,7 +5,6 @@ public class EnemyController : MonoBehaviour
 {
     public float speed = 3f;
     public float angularSpeed = 0f;
-    public float normalAngularSpeed = 120f;
     public float acceleration = 10f;
     public float attackCooldown = 1.5f;
     private float lastAttackTime = 0f;
@@ -15,6 +14,7 @@ public class EnemyController : MonoBehaviour
     private Animator animator;
     private EnemyHit enemyHit;
     private bool isHit = false;
+    private float storedAngularSpeed;
 
     void Start()
     {
@@ -49,14 +49,18 @@ public class EnemyController : MonoBehaviour
         if (agent != null)
         {
             agent.isStopped = true;
-            agent.angularSpeed = 0f;   // Para de girar ao receber dano
         }
         animator.SetTrigger("GetHit");
     }
     public void OnHitAnimationStart()
     {
         isHit = true;
-        if (agent != null) agent.isStopped = true;
+        if (agent != null)
+        {
+            storedAngularSpeed = agent.angularSpeed; 
+            agent.isStopped = true;
+            agent.angularSpeed = 0f;         
+        }
     }
     public void OnHitAnimationEnd()
     {
@@ -64,7 +68,7 @@ public class EnemyController : MonoBehaviour
         if (agent != null)
         {
             agent.isStopped = false;
-            agent.angularSpeed = normalAngularSpeed; // Volta a girar
+            agent.angularSpeed = storedAngularSpeed;
         }
     }
     void Update()
@@ -120,8 +124,9 @@ public class EnemyController : MonoBehaviour
             {
                 int damage = enemyHit.CalculateDamage();
                 playerHealth.TakeDamage(damage);
-                lastAttackTime = Time.time; // Atualiza o tempo do último ataque
+                lastAttackTime = Time.time;
             }
         }
     }
+    
 }

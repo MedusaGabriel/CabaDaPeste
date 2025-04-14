@@ -42,6 +42,15 @@ public class EnemyHealth : MonoBehaviour
 
         if (enemyAnimator != null)
         {
+            // Define o estado no Blend Tree: 0 para dano, 1 para morte
+            float hitValue = currentHealth > 0 ? 0f : 1f;
+            enemyAnimator.SetFloat("Hit", hitValue);
+
+            // Reseta outros parâmetros para evitar conflitos
+            enemyAnimator.ResetTrigger("Attack");
+            enemyAnimator.ResetTrigger("Move");
+
+            // Usa o Trigger "GetHit" para iniciar a animação
             enemyAnimator.SetTrigger("GetHit");
         }
 
@@ -53,8 +62,21 @@ public class EnemyHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Die();
+            Debug.Log("Inimigo vai morrer");
+            StartCoroutine(WaitAndDestroy());
         }
+    }
+
+    public void Die()
+    {
+        StartCoroutine(WaitAndDestroy());
+    }
+
+    private IEnumerator WaitAndDestroy()
+    {
+        yield return new WaitForSeconds(2f); // Tempo extra, se necessário
+        Destroy(gameObject);
+        Debug.Log("Inimigo Morreu");
     }
 
     void UpdateHealthUI()
@@ -91,21 +113,5 @@ public class EnemyHealth : MonoBehaviour
 
         healthSlider = worldSlider;
         healthSlider.value = 1;
-    }
-
-    void Die()
-    {
-        if (enemyAnimator != null)
-        {
-            enemyAnimator.SetTrigger("Die");
-        }
-
-        Debug.Log("Inimigo morreu!");
-        Destroy(gameObject);
-    }
-    private IEnumerator WaitAndDestroy()
-    {
-        yield return new WaitForSeconds(2f);
-        Destroy(gameObject);
     }
 }
