@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -34,15 +35,25 @@ public class EnemyHealth : MonoBehaviour
         FaceSliderToCamera();
     }
 
-    // Função para o inimigo receber dano
     public void TakeDamage(float damage)
     {
-        currentHealth -= damage;  // Reduz a vida do inimigo ao sofrer dano
+        currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        if (enemyAnimator != null)
+        {
+            enemyAnimator.SetTrigger("GetHit");
+        }
+
+        EnemyController controller = GetComponent<EnemyController>();
+        if (controller != null)
+        {
+            controller.HandleHitReaction();
+        }
 
         if (currentHealth <= 0)
         {
-            Die();  // Chama a função de morte se a vida chegar a 0
+            Die();
         }
     }
 
@@ -90,6 +101,11 @@ public class EnemyHealth : MonoBehaviour
         }
 
         Debug.Log("Inimigo morreu!");
+        Destroy(gameObject);
+    }
+    private IEnumerator WaitAndDestroy()
+    {
+        yield return new WaitForSeconds(2f);
         Destroy(gameObject);
     }
 }

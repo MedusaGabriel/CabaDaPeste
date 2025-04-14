@@ -4,15 +4,17 @@ using UnityEngine.AI;
 public class EnemyController : MonoBehaviour
 {
     public float speed = 3f;
-    public float angularSpeed = 500f;
+    public float angularSpeed = 0f;
+    public float normalAngularSpeed = 120f;
     public float acceleration = 10f;
-    public float attackCooldown = 1.5f; 
+    public float attackCooldown = 1.5f;
     private float lastAttackTime = 0f;
 
     private Transform player;
     private NavMeshAgent agent;
     private Animator animator;
     private EnemyHit enemyHit;
+    private bool isHit = false;
 
     void Start()
     {
@@ -41,10 +43,33 @@ public class EnemyController : MonoBehaviour
         animator = GetComponent<Animator>();
         enemyHit = GetComponent<EnemyHit>();
     }
-
+    public void HandleHitReaction()
+    {
+        isHit = true;
+        if (agent != null)
+        {
+            agent.isStopped = true;
+            agent.angularSpeed = 0f;   // Para de girar ao receber dano
+        }
+        animator.SetTrigger("GetHit");
+    }
+    public void OnHitAnimationStart()
+    {
+        isHit = true;
+        if (agent != null) agent.isStopped = true;
+    }
+    public void OnHitAnimationEnd()
+    {
+        isHit = false;
+        if (agent != null)
+        {
+            agent.isStopped = false;
+            agent.angularSpeed = normalAngularSpeed; // Volta a girar
+        }
+    }
     void Update()
     {
-        if (player != null && agent != null)
+        if (player != null && agent != null && !isHit)
         {
             if (!animator.GetBool("IsAttacking"))
             {
