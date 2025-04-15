@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-    public float dashSpeed = 10f;
-    public float dashTime = 0.5f;
+    public float dashSpeed = 20f;
+    public float dashTime = 0.25f;
     public float dashCooldown = 2f;
     public string dashParam = "Dash";
     public string dashTrigger = "IsDash";
@@ -22,7 +22,6 @@ public class PlayerDash : MonoBehaviour
     private GameObject sliderWorldObject;
     private PlayerAttackMelee _playerAttackMelee;
     private PlayerTarget _playerTarget;
-
 
     void Start()
     {
@@ -56,6 +55,7 @@ public class PlayerDash : MonoBehaviour
                 TryDash();
             }
         }
+
         if (!_playerTarget.IsTargeting)
         {
             FaceSliderToCamera();
@@ -63,13 +63,13 @@ public class PlayerDash : MonoBehaviour
 
         UpdateCooldownUI();
     }
-        void LateUpdate()
+
+    void LateUpdate()
     {
         if (sliderWorldObject != null)
         {
             sliderWorldObject.transform.position = transform.position + sliderOffset;
         }
-
     }
 
     void TryDash()
@@ -85,27 +85,23 @@ public class PlayerDash : MonoBehaviour
         isDashing = true;
         lastDashTime = Time.time;
         cooldownSlider.gameObject.SetActive(true);
-        cooldownSlider.value = 0;
+        cooldownSlider.value = 0f;
 
         float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
+        // Define a direção do dash
+        Vector3 dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
+
         float startTime = Time.time;
         while (Time.time < startTime + dashTime)
         {
-            if (dashValue == 2f)
-            {
-                _rigidbody.linearVelocity = -transform.forward * (dashSpeed * dashValue);
-            }
-            else
-            {
-                _rigidbody.linearVelocity = transform.forward * (dashSpeed * dashValue);
-            }
+            _rigidbody.velocity = dashDirection * dashSpeed * dashValue;
             yield return null;
         }
 
-        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.velocity = Vector3.zero;
         isDashing = false;
     }
 
