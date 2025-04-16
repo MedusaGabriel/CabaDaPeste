@@ -52,10 +52,19 @@ public class PlayerTarget : MonoBehaviour
 
         if (_animator != null)
         {
-            _animator.SetFloat("Speed", _isTargeting ? -1f : 1f);
+            _animator.SetBool("IsTarget", _isTargeting);
         }
 
         UpdateTargetIndicator();
+
+        if (_isTargeting)
+        {
+            var inputSystem = GetComponent<PlayerInputS.PlayerInputSystem>();
+            if (inputSystem != null)
+            {
+                inputSystem.SprintInput(false);
+            }
+        }
     }
 
     private void RefreshEnemiesInRange()
@@ -65,6 +74,7 @@ public class PlayerTarget : MonoBehaviour
 
         foreach (Collider c in hits)
         {
+            // Procura tags que comecem com "Enemy"
             if (c.gameObject.tag.StartsWith("Enemy"))
             {
                 _enemiesInRange.Add(c.transform);
@@ -121,7 +131,6 @@ public class PlayerTarget : MonoBehaviour
         }
     }
 
-
     private void ClearLock()
     {
         _currentTarget = null;
@@ -150,7 +159,7 @@ public class PlayerTarget : MonoBehaviour
         Renderer rend = _currentIndicator.GetComponent<Renderer>();
         if (rend != null)
         {
-            rend.material.color = Color.magenta; 
+            rend.material.color = Color.magenta;
         }
     }
 
@@ -159,7 +168,6 @@ public class PlayerTarget : MonoBehaviour
         if (_currentIndicator == null || _currentTarget == null) return;
 
         _currentIndicator.transform.position = _currentTarget.position + Vector3.up * 2f;
-
         _currentIndicator.transform.Rotate(Vector3.up, 100f * Time.deltaTime);
     }
 

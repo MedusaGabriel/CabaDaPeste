@@ -37,12 +37,17 @@ public class PlayerController : MonoBehaviour
 
         _playerAttack = GetComponent<PlayerAttackMelee>();
 
+        Physics.IgnoreLayerCollision(
+        LayerMask.NameToLayer("Player"),
+        LayerMask.NameToLayer("Enemy"),
+        false
+    );
+
     }
 
     private void Update()
     {
         Rotate();
-        Move();
     }
 
     private void AssignAnimationIDs()
@@ -76,41 +81,48 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Move()
+    private void FixedUpdate()
+{
+    Move();
+}
+
+private void Move()
+{
+    if (_playerAttack != null && _playerAttack.IsAttacking)
     {
-        if (_playerAttack != null && _playerAttack.IsAttacking)
-        {
-            return;
-        }
-        
-        Vector2 input = _input.move;
-        float moveX = input.x;
-        float moveZ = input.y;
-
-        bool isSprinting = _input.sprint;
-        float targetSpeed = isSprinting ? SprintSpeed : MoveSpeed;
-
-        if (moveX == 0 && moveZ == 0)
-        {
-            targetSpeed = 0.0f;
-        }
-
-        _speed = Mathf.Lerp(_speed, targetSpeed, Time.deltaTime * SpeedChangeRate);
-
-        if (targetSpeed == 0f && _speed < 0.01f)
-        {
-            _speed = 0f;
-        }
-
-        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
-        Vector3 movement = rawDirection * (_speed * Time.deltaTime);
-        _rigidbody.MovePosition(transform.position + movement);
-
-        if (_hasAnimator)
-        {
-            float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : rawDirection.magnitude;
-            _animator.SetFloat(_animIDSpeed, _speed);
-            _animator.SetFloat(_animIDMotionSpeed, motionMagnitude);
-        }
+        return;
     }
+
+    Vector2 input = _input.move;
+    float moveX = input.x;
+    float moveZ = input.y;
+
+    bool isSprinting = _input.sprint;
+    float targetSpeed = isSprinting ? SprintSpeed : MoveSpeed;
+
+    if (moveX == 0 && moveZ == 0)
+    {
+        targetSpeed = 0.0f; 
+        _input.SprintInput(false);
+    }
+
+    _speed = Mathf.Lerp(_speed, targetSpeed, Time.fixedDeltaTime * SpeedChangeRate);
+
+    if (targetSpeed == 0f && _speed < 0.01f)
+    {
+        _speed = 0f;
+    }
+
+    Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
+    Vector3 movement = rawDirection * _speed;
+
+    _rigidbody.MovePosition(_rigidbody.position + movement * Time.fixedDeltaTime);
+
+    if (_hasAnimator)
+    {
+        float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : rawDirection.magnitude;
+        _animator.SetFloat(_animIDSpeed, _speed);
+        _animator.SetFloat(_animIDMotionSpeed, motionMagnitude);
+    }
+}
 }

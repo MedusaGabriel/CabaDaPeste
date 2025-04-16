@@ -5,14 +5,10 @@ using UnityEngine.UI;
 public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-    public float dashSpeed = 10f;
-    public float dashTime = 0.5f;
+    public float dashSpeed = 20f;
+    public float dashTime = 0.25f;
     public float dashCooldown = 2f;
-
-    // Parâmetro único para o Blend Tree
-    //  1 => dash para frente; -1 => dash para trás
     public string dashParam = "Dash";
-    // Trigger que chama o dash no Animator
     public string dashTrigger = "IsDash";
 
     [Header("Cooldown UI")]
@@ -24,11 +20,16 @@ public class PlayerDash : MonoBehaviour
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
     private GameObject sliderWorldObject;
+    private PlayerAttackMelee _playerAttackMelee;
+    private PlayerTarget _playerTarget;
 
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+
+        _playerAttackMelee = GetComponent<PlayerAttackMelee>();
+        _playerTarget = GetComponent<PlayerTarget>();
 
         if (cooldownSlider != null)
         {
@@ -45,11 +46,30 @@ public class PlayerDash : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            TryDash();
+            if (_playerAttackMelee != null && _playerAttackMelee.IsAttacking)
+            {
+                return;
+            }
+            else
+            {
+                TryDash();
+            }
+        }
+
+        if (!_playerTarget.IsTargeting)
+        {
+            FaceSliderToCamera();
         }
 
         UpdateCooldownUI();
-        FaceSliderToCamera();
+    }
+
+    void LateUpdate()
+    {
+        if (sliderWorldObject != null)
+        {
+            sliderWorldObject.transform.position = transform.position + sliderOffset;
+        }
     }
 
     void TryDash()
@@ -65,17 +85,19 @@ public class PlayerDash : MonoBehaviour
         isDashing = true;
         lastDashTime = Time.time;
         cooldownSlider.gameObject.SetActive(true);
-        cooldownSlider.value = 0;
+        cooldownSlider.value = 0f;
 
-        // Exemplo: +1 para frente, -1 para trás
-        float dashValue = 1f; // Ajuste conforme sua lógica de alvo
+        float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
+
+        // Define a direção do dash
+        Vector3 dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
 
         float startTime = Time.time;
         while (Time.time < startTime + dashTime)
         {
-            _rigidbody.linearVelocity = transform.forward * (dashSpeed * dashValue);
+            _rigidbody.linearVelocity = dashDirection * dashSpeed * dashValue;
             yield return null;
         }
 

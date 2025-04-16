@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class EnemyHealth : MonoBehaviour
     [Header("Health UI")]
     public Slider healthSlider;
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
-
+    public Animator enemyAnimator;
     private GameObject sliderWorldObject;
 
     void Start()
@@ -34,16 +35,48 @@ public class EnemyHealth : MonoBehaviour
         FaceSliderToCamera();
     }
 
-    // Função para o inimigo receber dano
     public void TakeDamage(float damage)
     {
-        currentHealth -= damage;  // Reduz a vida do inimigo ao sofrer dano
+        currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        if (enemyAnimator != null)
+        {
+            // Define o estado no Blend Tree: 0 para dano, 1 para morte
+            float hitValue = currentHealth > 0 ? 0f : 1f;
+            enemyAnimator.SetFloat("Hit", hitValue);
+
+            // Reseta outros parâmetros para evitar conflitos
+            enemyAnimator.ResetTrigger("Attack");
+            enemyAnimator.ResetTrigger("Move");
+
+            // Usa o Trigger "GetHit" para iniciar a animação
+            enemyAnimator.SetTrigger("GetHit");
+        }
+
+        EnemyController controller = GetComponent<EnemyController>();
+        if (controller != null)
+        {
+            controller.HandleHitReaction();
+        }
 
         if (currentHealth <= 0)
         {
-            Die();  // Chama a função de morte se a vida chegar a 0
+            Debug.Log("Inimigo vai morrer");
+            StartCoroutine(WaitAndDestroy());
         }
+    }
+
+    public void Die()
+    {
+        StartCoroutine(WaitAndDestroy());
+    }
+
+    private IEnumerator WaitAndDestroy()
+    {
+        yield return new WaitForSeconds(2f); // Tempo extra, se necessário
+        Destroy(gameObject);
+        Debug.Log("Inimigo Morreu");
     }
 
     void UpdateHealthUI()
@@ -80,11 +113,5 @@ public class EnemyHealth : MonoBehaviour
 
         healthSlider = worldSlider;
         healthSlider.value = 1;
-    }
-
-    void Die()
-    {
-        Debug.Log("Inimigo morreu!");
-        Destroy(gameObject);  
     }
 }

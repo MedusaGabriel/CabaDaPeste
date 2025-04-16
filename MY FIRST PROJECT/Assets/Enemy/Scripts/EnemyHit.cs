@@ -2,11 +2,25 @@ using UnityEngine;
 
 public class EnemyHit : MonoBehaviour
 {
-    public float damagePercentage = 0.1f;  // Dano será 10% da vida atual do jogador
+    public int minDamage = 10;
+    public int maxDamage = 20;
 
-    // Função para obter o dano que o inimigo vai causar ao jogador
-    public int CalculateDamage(int playerCurrentHealth)
+    public int CalculateDamage()
     {
-        return Mathf.CeilToInt(playerCurrentHealth * damagePercentage);  // Calcula 10% da vida atual do jogador
+        int damage = Random.Range(minDamage, maxDamage);
+        Debug.Log($"[EnemyHit] Dano calculado: {damage}");
+        return damage;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            int damage = CalculateDamage();
+            Debug.Log($"[EnemyHit] Colisão com o player detectada. Dano causado: {damage}");
+
+            // Aqui você pode aplicar o dano no script do player, tipo:
+            // other.GetComponent<PlayerHealth>()?.TakeDamage(damage);
+        }
     }
 }
