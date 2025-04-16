@@ -7,8 +7,10 @@ public class EnemyController : MonoBehaviour
     public float angularSpeed = 0f;
     public float acceleration = 10f;
     public float attackCooldown = 1.5f;
-    private float lastAttackTime = 0f;
+    public float attackRange = 2f;
+    public bool canChasePlayer = true;
 
+    private float lastAttackTime = 0f;
     private Transform player;
     private NavMeshAgent agent;
     private Animator animator;
@@ -57,9 +59,9 @@ public class EnemyController : MonoBehaviour
         isHit = true;
         if (agent != null)
         {
-            storedAngularSpeed = agent.angularSpeed; 
+            storedAngularSpeed = agent.angularSpeed;
             agent.isStopped = true;
-            agent.angularSpeed = 0f;         
+            agent.angularSpeed = 0f;
         }
     }
     public void OnHitAnimationEnd()
@@ -73,47 +75,64 @@ public class EnemyController : MonoBehaviour
     }
     void Update()
     {
-        if (player != null && agent != null && !isHit)
+        if (player != null && agent != null && !isHit && canChasePlayer)
         {
-            if (!animator.GetBool("IsAttacking"))
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+            if (distanceToPlayer <= attackRange)
             {
-                agent.SetDestination(player.position);
+                if (!animator.GetBool("IsAttacking"))
+                    animator.SetBool("IsAttacking", true);
+
+                agent.isStopped = true;
+                TryDealDamage(player.gameObject);
             }
             else
             {
-                agent.isStopped = true;
+                if (animator.GetBool("IsAttacking"))
+                    animator.SetBool("IsAttacking", false);
+
+                agent.isStopped = false;
+                agent.SetDestination(player.position);
             }
         }
-    }
-
-    void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
+        else
         {
-            animator.SetBool("IsAttacking", true);
-            agent.isStopped = true;
-
-            // Tenta aplicar dano ao jogador
-            TryDealDamage(collision.gameObject);
+            if (animator.GetBool("IsAttacking"))
+                animator.SetBool("IsAttacking", false);
+            if (agent != null)
+                agent.isStopped = true;
         }
     }
 
-    void OnCollisionStay(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            TryDealDamage(collision.gameObject);
-        }
-    }
+    // void OnCollisionEnter(Collision collision)
+    // {
+    //     if (collision.gameObject.CompareTag("Player"))
+    //     {
+    //         animator.SetBool("IsAttacking", true);
+    //         agent.isStopped = true;
 
-    void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player"))
-        {
-            animator.SetBool("IsAttacking", false);
-            agent.isStopped = false;
-        }
-    }
+    //         // Tenta aplicar dano ao jogador
+    //         TryDealDamage(collision.gameObject);
+    //     }
+    // }
+
+    // void OnCollisionStay(Collision collision)
+    // {
+    //     if (collision.gameObject.CompareTag("Player"))
+    //     {
+    //         TryDealDamage(collision.gameObject);
+    //     }
+    // }
+
+    // void OnCollisionExit(Collision collision)
+    // {
+    //     if (collision.gameObject.CompareTag("Player"))
+    //     {
+    //         animator.SetBool("IsAttacking", false);
+    //         agent.isStopped = false;
+    //     }
+    // }
 
     private void TryDealDamage(GameObject playerObj)
     {
@@ -128,5 +147,5 @@ public class EnemyController : MonoBehaviour
             }
         }
     }
-    
+
 }

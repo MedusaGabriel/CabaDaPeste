@@ -5,7 +5,7 @@ public class PlayerAttackMelee : MonoBehaviour
     [Header("Referência para a Arma")]
     [Tooltip("Arraste aqui o objeto da arma que contém o BoxCollider.")]
     public GameObject weaponObject;
-
+    public float attackRange = 2f;
     public float attackDamage = 20f;
     public Animator playerAnimator;
     public bool CanMove { get; private set; } = true;
@@ -20,7 +20,7 @@ public class PlayerAttackMelee : MonoBehaviour
             _weaponCollider = weaponObject.GetComponent<BoxCollider>();
             if (_weaponCollider != null)
             {
-                _weaponCollider.enabled = false; 
+                _weaponCollider.enabled = false;
             }
         }
     }
@@ -37,8 +37,21 @@ public class PlayerAttackMelee : MonoBehaviour
     {
         IsAttacking = true;
         playerAnimator.SetTrigger("PlayerMelee");
-    }
 
+        // Verifica todos os inimigos no alcance
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        foreach (var hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Enemy"))
+            {
+                EnemyHealth enemyHealth = hitCollider.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                {
+                    enemyHealth.TakeDamage(attackDamage);
+                }
+            }
+        }
+    }
     public void EnableCollider()
     {
         if (_weaponCollider != null)
@@ -60,16 +73,4 @@ public class PlayerAttackMelee : MonoBehaviour
         IsAttacking = false;
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Enemy"))
-        {
-            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
-            if (enemyHealth != null)
-            {
-                enemyHealth.TakeDamage(attackDamage);
-            }
-        }
-    }
-    
 }

@@ -97,11 +97,11 @@ public class PlayerDash : MonoBehaviour
         float startTime = Time.time;
         while (Time.time < startTime + dashTime)
         {
-            _rigidbody.velocity = dashDirection * dashSpeed * dashValue;
+            _rigidbody.linearVelocity = dashDirection * dashSpeed * dashValue;
             yield return null;
         }
 
-        _rigidbody.velocity = Vector3.zero;
+        _rigidbody.linearVelocity = Vector3.zero;
         isDashing = false;
     }
 
