@@ -35,8 +35,7 @@
 
 ### 👉 1. Trocar de branch
 
-
-git checkout nome-da-branch
+`git checkout nome-da-branch`
 
 Esse comando serve para que você mude a branch para outra exemplo: 
 
