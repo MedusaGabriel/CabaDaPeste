@@ -1,5 +1,11 @@
 using UnityEngine;
 // TESTES DE ENVIO PARA O GITHUB
+// TESTES DE ENVIO PARA O GITHUB
+// TESTES DE ENVIO PARA O GITHUB
+// TESTES DE ENVIO PARA O GITHUB
+// TESTES DE ENVIO PARA O GITHUB
+// TESTES DE ENVIO PARA O GITHUB
+
 public class PlayerAttackMelee : MonoBehaviour
 {
     [Header("Referência para a Arma")]
@@ -8,6 +14,7 @@ public class PlayerAttackMelee : MonoBehaviour
     public float attackRange = 2f;
     public float attackDamage = 20f;
     public Animator playerAnimator;
+    public ParticleSystem weaponEffect; // Adicione esta linha
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
 
@@ -22,6 +29,11 @@ public class PlayerAttackMelee : MonoBehaviour
             {
                 _weaponCollider.enabled = false;
             }
+        }
+
+        if (weaponEffect != null)
+        {
+            weaponEffect.Stop(); // Certifique-se de que o efeito está desativado no início
         }
     }
 
@@ -38,6 +50,11 @@ public class PlayerAttackMelee : MonoBehaviour
         IsAttacking = true;
         playerAnimator.SetTrigger("PlayerMelee");
 
+        if (weaponEffect != null)
+        {
+            weaponEffect.Play(); // Ativa o efeito visual
+        }
+
         // Verifica todos os inimigos no alcance
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
         foreach (var hitCollider in hitColliders)
@@ -52,6 +69,7 @@ public class PlayerAttackMelee : MonoBehaviour
             }
         }
     }
+
     public void EnableCollider()
     {
         if (_weaponCollider != null)
@@ -71,6 +89,10 @@ public class PlayerAttackMelee : MonoBehaviour
         CanMove = true;
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
-    }
 
+        if (weaponEffect != null)
+        {
+            weaponEffect.Stop(); // Desativa o efeito visual
+        }
+    }
 }
