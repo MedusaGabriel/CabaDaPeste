@@ -38,7 +38,7 @@
 
 git checkout nome-da-branch
 
-# Esse comando serve para que você mude a branch para outra exemplo: 
+Esse comando serve para que você mude a branch para outra exemplo: 
 
 git checkout gabriel  **Troquei para branch gabriel**
 
@@ -46,7 +46,7 @@ git checkout gabriel  **Troquei para branch gabriel**
 
 git pull origin development 
 
-# Esse comando ele ira puxar as últimas alterações da development para sua branch local atual 
+Esse comando ele ira puxar as últimas alterações da development para sua branch local atual 
 
 ### 👉 3. Juntar sua branch com a development
 
