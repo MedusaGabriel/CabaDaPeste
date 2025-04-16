@@ -1,10 +1,6 @@
 using UnityEngine;
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
+// testes de mensagem para brian
+
 
 public class PlayerAttackMelee : MonoBehaviour
 {
