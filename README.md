@@ -40,18 +40,18 @@ git checkout nome-da-branch
 
 Esse comando serve para que você mude a branch para outra exemplo: 
 
-git checkout gabriel  **Troquei para branch gabriel**
+`git checkout gabriel`  **Troquei para branch gabriel**
 
 ### 👉 2. Puxar atualizações da development
 
-git pull origin development 
+`git pull origin development` 
 
 Esse comando ele ira puxar as últimas alterações da development para sua branch local atual 
 
 ### 👉 3. Juntar sua branch com a development
 
-git merge gabriel **Estou juntando as alterações que fiz na branch Gabriel com a development**
+`git merge gabriel` **Estou juntando as alterações que fiz na branch Gabriel com a development**
 
 ### 👉 4. Enviar as alterações para o GitHub
 
-git push origin development **Envia as alterações da sua development local para a development do GitHub.** 
+`git push origin development`**Envia as alterações da sua development local para a development do GitHub.** 
