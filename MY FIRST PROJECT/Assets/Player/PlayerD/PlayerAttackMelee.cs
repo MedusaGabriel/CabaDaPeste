@@ -1,10 +1,5 @@
 using UnityEngine;
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
+// Mensagem para briano: "O código abaixo é o PlayerAttackMelee.cs, que contém a lógica de ataque corpo a corpo do jogador. Ele inclui referências para a arma, animações e efeitos visuais. O código também verifica se o jogador está atacando e aplica dano aos inimigos dentro do alcance."
 
 public class PlayerAttackMelee : MonoBehaviour
 {
