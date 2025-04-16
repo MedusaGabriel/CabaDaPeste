@@ -50,6 +50,10 @@ Esse comando ele ira puxar as últimas alterações da development para sua bran
 
 ### 👉 3. Juntar sua branch com a development
 
+`git merge `
+
+Exemplo: 
+
 `git merge gabriel` **Estou juntando as alterações que fiz na branch Gabriel com a development**
 
 ### 👉 4. Enviar as alterações para o GitHub
