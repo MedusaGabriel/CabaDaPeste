@@ -1,35 +1,35 @@
 using UnityEngine;
-using StarterAssets;
 using System.Collections;
 using UnityEngine.UI;
 
-public class DashController : MonoBehaviour
+public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-    public float dashSpeed = 10f;
-    public float dashTime = 0.5f;
+    public float dashSpeed = 20f;
+    public float dashTime = 0.25f;
     public float dashCooldown = 2f;
-    public string dashAnimationTrigger = "Dash";
-    public string dashBackwardTrigger = "DashBackward"; 
+    public string dashParam = "Dash";
+    public string dashTrigger = "IsDash";
 
     [Header("Cooldown UI")]
     public Slider cooldownSlider;
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
 
-    private ThirdPersonController moveScript;
-    private CharacterController characterController;
+    private Rigidbody _rigidbody;
     private Animator animator;
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
     private GameObject sliderWorldObject;
-
-    private bool isLocked;
+    private PlayerAttackMelee _playerAttackMelee;
+    private PlayerTarget _playerTarget;
 
     void Start()
     {
-        moveScript = GetComponent<ThirdPersonController>();
-        characterController = GetComponent<CharacterController>();
+        _rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+
+        _playerAttackMelee = GetComponent<PlayerAttackMelee>();
+        _playerTarget = GetComponent<PlayerTarget>();
 
         if (cooldownSlider != null)
         {
@@ -44,15 +44,32 @@ public class DashController : MonoBehaviour
 
     void Update()
     {
-        isLocked = animator.GetBool("IsLocked");
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            TryDash();
+            if (_playerAttackMelee != null && _playerAttackMelee.IsAttacking)
+            {
+                return;
+            }
+            else
+            {
+                TryDash();
+            }
         }
-        
+
+        if (!_playerTarget.IsTargeting)
+        {
+            FaceSliderToCamera();
+        }
+
         UpdateCooldownUI();
-        FaceSliderToCamera();
+    }
+
+    void LateUpdate()
+    {
+        if (sliderWorldObject != null)
+        {
+            sliderWorldObject.transform.position = transform.position + sliderOffset;
+        }
     }
 
     void TryDash()
@@ -68,30 +85,23 @@ public class DashController : MonoBehaviour
         isDashing = true;
         lastDashTime = Time.time;
         cooldownSlider.gameObject.SetActive(true);
-        cooldownSlider.value = 0;
+        cooldownSlider.value = 0f;
 
+        float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
+        animator.SetFloat(dashParam, dashValue);
+        animator.SetTrigger(dashTrigger);
 
-        Vector3 dashDirection;
-        
-        if (isLocked) 
-        {
-            dashDirection = -transform.forward;
-            animator.SetTrigger(dashBackwardTrigger);
-        } 
-        else 
-        {
-            dashDirection = transform.forward;
-            animator.SetTrigger(dashAnimationTrigger);
-        }
+        // Define a direção do dash
+        Vector3 dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
 
         float startTime = Time.time;
-
         while (Time.time < startTime + dashTime)
         {
-            characterController.Move(dashDirection * dashSpeed * Time.deltaTime);
+            _rigidbody.velocity = dashDirection * dashSpeed * dashValue;
             yield return null;
         }
-        
+
+        _rigidbody.velocity = Vector3.zero;
         isDashing = false;
     }
 
@@ -101,7 +111,6 @@ public class DashController : MonoBehaviour
 
         float progress = Mathf.Clamp01((Time.time - lastDashTime) / dashCooldown);
         cooldownSlider.value = progress;
-
         cooldownSlider.gameObject.SetActive(progress < 1f);
     }
 
@@ -126,7 +135,7 @@ public class DashController : MonoBehaviour
         Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
         worldSlider.transform.localPosition = Vector3.zero;
         worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-        
+
         cooldownSlider = worldSlider;
         cooldownSlider.value = 0;
     }
