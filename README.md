@@ -30,14 +30,16 @@
 
 ---
 
-git branch - verifica ser ta na sua branch (exemplo: brian) 
-git pull origin development - puxa as alterações da development 
-git add . 
-git commit -m "✨ feat: descrição do que você fez"
-git push origin nome-da-sua-branch (exemplo: git push origin brian)
-
-
 ## 🛠️ Comandos Git
+
+1. `git branch` - verifica ser ta na sua branch (exemplo: brian) 
+2. `git pull origin development` - puxa as alterações da development 
+3. `git add .` - adiciona as alterações 
+4. `git commit -m "✨ mensagem das alterações ou titulo do que fez"` - git commit -m "✨ feat: descrição do que você fez"
+5. `git push origin nome-da-sua-branch` (exemplo: git push origin brian)
+6. **SEMPRE VERIFIQUE QUAL BRANCH VOCÊ ESTA** Você pode verificar atraves do git branch 
+
+---
 
 ### 👉 1. Trocar de branch
 
