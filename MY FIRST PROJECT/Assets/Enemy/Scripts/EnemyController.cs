@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
@@ -48,7 +49,7 @@ public class EnemyController : MonoBehaviour
     public void HandleHitReaction()
     {
         isHit = true;
-        if (agent != null)
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
         {
             agent.isStopped = true;
         }
@@ -57,7 +58,7 @@ public class EnemyController : MonoBehaviour
     public void OnHitAnimationStart()
     {
         isHit = true;
-        if (agent != null)
+        if (agent != null & agent.enabled)
         {
             storedAngularSpeed = agent.angularSpeed;
             agent.isStopped = true;
@@ -67,7 +68,7 @@ public class EnemyController : MonoBehaviour
     public void OnHitAnimationEnd()
     {
         isHit = false;
-        if (agent != null)
+        if (agent != null & agent.enabled)
         {
             agent.isStopped = false;
             agent.angularSpeed = storedAngularSpeed;
@@ -75,64 +76,38 @@ public class EnemyController : MonoBehaviour
     }
     void Update()
     {
-        if (player != null && agent != null && !isHit && canChasePlayer)
+        if (agent != null && agent.enabled)
         {
-            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-            if (distanceToPlayer <= attackRange)
+            if (player != null && !isHit && canChasePlayer)
             {
-                if (!animator.GetBool("IsAttacking"))
-                    animator.SetBool("IsAttacking", true);
+                float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-                agent.isStopped = true;
-                TryDealDamage(player.gameObject);
+                if (distanceToPlayer <= attackRange)
+                {
+                    if (!animator.GetBool("IsAttacking"))
+                        animator.SetBool("IsAttacking", true);
+
+                    agent.isStopped = true;
+                    TryDealDamage(player.gameObject);
+                }
+                else
+                {
+                    if (animator.GetBool("IsAttacking"))
+                        animator.SetBool("IsAttacking", false);
+
+                    agent.isStopped = false;
+                    agent.SetDestination(player.position);
+                }
             }
             else
             {
                 if (animator.GetBool("IsAttacking"))
                     animator.SetBool("IsAttacking", false);
 
-                agent.isStopped = false;
-                agent.SetDestination(player.position);
+                agent.isStopped = true; // Para o agente
             }
         }
-        else
-        {
-            if (animator.GetBool("IsAttacking"))
-                animator.SetBool("IsAttacking", false);
-            if (agent != null)
-                agent.isStopped = true;
-        }
     }
-
-    // void OnCollisionEnter(Collision collision)
-    // {
-    //     if (collision.gameObject.CompareTag("Player"))
-    //     {
-    //         animator.SetBool("IsAttacking", true);
-    //         agent.isStopped = true;
-
-    //         // Tenta aplicar dano ao jogador
-    //         TryDealDamage(collision.gameObject);
-    //     }
-    // }
-
-    // void OnCollisionStay(Collision collision)
-    // {
-    //     if (collision.gameObject.CompareTag("Player"))
-    //     {
-    //         TryDealDamage(collision.gameObject);
-    //     }
-    // }
-
-    // void OnCollisionExit(Collision collision)
-    // {
-    //     if (collision.gameObject.CompareTag("Player"))
-    //     {
-    //         animator.SetBool("IsAttacking", false);
-    //         agent.isStopped = false;
-    //     }
-    // }
 
     private void TryDealDamage(GameObject playerObj)
     {
@@ -145,6 +120,53 @@ public class EnemyController : MonoBehaviour
                 playerHealth.TakeDamage(damage);
                 lastAttackTime = Time.time;
             }
+        }
+    }
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        if (agent != null  && agent.enabled && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.enabled = false;
+        }
+
+        StartCoroutine(KnockbackCoroutine(direction, force));
+    }
+
+    private IEnumerator KnockbackCoroutine(Vector3 direction, float force)
+    {
+        float knockbackDuration = 0.5f;
+        float elapsedTime = 0f;
+
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = startPosition + direction * force;
+
+        targetPosition.y = startPosition.y;
+
+        while (elapsedTime < knockbackDuration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / knockbackDuration);
+
+            // if (NavMesh.SamplePosition(nextPosition, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+            // {
+            //     transform.position = hit.position;
+            // }
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+
+        EnableNavMeshAgent();
+    }
+
+    private void EnableNavMeshAgent()
+    {
+        if (agent != null)
+        {
+            agent.enabled = true;
+            agent.isStopped = false;
         }
     }
 

@@ -1,10 +1,5 @@
 using UnityEngine;
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
-// TESTES DE ENVIO PARA O GITHUB
+using System.Collections.Generic;
 
 public class PlayerAttackMelee : MonoBehaviour
 {
@@ -13,71 +8,163 @@ public class PlayerAttackMelee : MonoBehaviour
     public GameObject weaponObject;
     public float attackRange = 2f;
     public float attackDamage = 20f;
+    private PlayerStamina playerStamina;
+
+    private int comboIndex = 0;
+    private float comboResetTime = 1.5f;
+    private float comboTimer = 0f;
+
+
+    public float knockbackForce = 5f;
+
     public Animator playerAnimator;
-    public ParticleSystem weaponEffect; // Adicione esta linha
+
+    public ParticleSystem weaponEffect;
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
 
     private BoxCollider _weaponCollider;
+    private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
+    private Vector3 _originalColliderSize;
+    private Vector3 _attackColliderSize = new Vector3(1f, 1f, 2f);
+
+    public float attackColliderCenterYOffset = 0.2f;
 
     private void Start()
     {
+        playerStamina = GetComponent<PlayerStamina>();
+
         if (weaponObject != null)
         {
             _weaponCollider = weaponObject.GetComponent<BoxCollider>();
             if (_weaponCollider != null)
             {
+                _originalColliderSize = _weaponCollider.size;
                 _weaponCollider.enabled = false;
             }
         }
 
         if (weaponEffect != null)
         {
-            weaponEffect.Stop(); // Certifique-se de que o efeito está desativado no início
+            weaponEffect.Stop();
+        }
+
+        Collider playerCollider = GetComponent<Collider>();
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+
+        foreach (GameObject enemy in enemies)
+        {
+            Collider enemyCollider = enemy.GetComponent<Collider>();
+            if (enemyCollider != null)
+            {
+                Physics.IgnoreCollision(playerCollider, enemyCollider);
+            }
         }
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && !IsAttacking)
+        if (Input.GetKeyDown(KeyCode.E) && !IsAttacking && playerStamina.TryConsumeStamina())
         {
-            Attack();
+            PerformComboAttack();
+        }
+
+        if (comboIndex > 0)
+        {
+            comboTimer += Time.deltaTime;
+            if (comboTimer >= comboResetTime)
+            {
+                ResetCombo();
+            }
         }
     }
 
-    private void Attack()
+    private void PerformComboAttack()
     {
         IsAttacking = true;
-        playerAnimator.SetTrigger("PlayerMelee");
+        CanMove = false;
+        comboTimer = 0f;
 
-        if (weaponEffect != null)
+        if (comboIndex == 0)
         {
-            weaponEffect.Play(); // Ativa o efeito visual
+            playerAnimator.SetTrigger("PlayerMelee");
+            CanMove = false;
+        }
+        else if (comboIndex % 2 == 1)
+        {
+            playerAnimator.SetTrigger("AtkCombo1");
+            CanMove = false;
+        }
+        else if (comboIndex % 2 == 0)
+        {
+            playerAnimator.SetTrigger("AtkCombo2");
+            CanMove = false;
         }
 
-        // Verifica todos os inimigos no alcance
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
-        foreach (var hitCollider in hitColliders)
-        {
-            if (hitCollider.CompareTag("Enemy"))
-            {
-                EnemyHealth enemyHealth = hitCollider.GetComponent<EnemyHealth>();
-                if (enemyHealth != null)
-                {
-                    enemyHealth.TakeDamage(attackDamage);
-                }
-            }
-        }
+        comboIndex++;
+        Invoke(nameof(ResetIsAttacking), 0.5f);
+    }
+
+    private void ResetCombo()
+    {
+        comboIndex = 0;
+        comboTimer = 0f;
+        IsAttacking = false;
+        CanMove = true;
+
+        playerAnimator.ResetTrigger("AtkCombo1");
+        playerAnimator.ResetTrigger("AtkCombo2");
+        playerAnimator.ResetTrigger("PlayerMelee");
+    }
+
+    private void ResetIsAttacking()
+    {
+        IsAttacking = false;
+        CanMove = false;
+    }
+    public void EnableMovement()
+    {
+        CanMove = true;
     }
 
     public void EnableCollider()
     {
         if (_weaponCollider != null)
         {
+            _weaponCollider.size = _attackColliderSize;
             _weaponCollider.enabled = true;
         }
+        _enemiesHit.Clear();
         CanMove = false;
         playerAnimator.SetBool("IsAttacking", true);
+
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Enemy") && !_enemiesHit.Contains(other.gameObject))
+        {
+            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(attackDamage);
+                Debug.Log("Dano causado ao inimigo " + other.name + ": " + attackDamage);
+            }
+
+            Rigidbody enemyRigidbody = other.GetComponent<Rigidbody>();
+            EnemyController enemyController = other.GetComponent<EnemyController>();
+            Vector3 knockbackDirection = (other.transform.position - transform.position).normalized;
+
+            if (enemyController != null)
+            {
+                enemyController.ApplyKnockback(knockbackDirection, knockbackForce);
+            }
+            else if (enemyRigidbody != null)
+            {
+                enemyRigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
+            }
+
+            _enemiesHit.Add(other.gameObject);
+        }
     }
 
     public void DisableCollider()
@@ -85,14 +172,16 @@ public class PlayerAttackMelee : MonoBehaviour
         if (_weaponCollider != null)
         {
             _weaponCollider.enabled = false;
+            _weaponCollider.size = _originalColliderSize;
         }
+        _enemiesHit.Clear();
         CanMove = true;
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
 
         if (weaponEffect != null)
         {
-            weaponEffect.Stop(); // Desativa o efeito visual
+            weaponEffect.Stop();
         }
     }
 }
