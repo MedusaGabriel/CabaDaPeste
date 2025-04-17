@@ -8,7 +8,7 @@ public class EnemyHit : MonoBehaviour
     public int CalculateDamage()
     {
         int damage = Random.Range(minDamage, maxDamage);
-        Debug.Log($"[EnemyHit] Dano calculado: {damage}");
+        // Debug.Log($"[EnemyHit] Dano calculado: {damage}");
         return damage;
     }
 
@@ -17,7 +17,7 @@ public class EnemyHit : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             int damage = CalculateDamage();
-            Debug.Log($"[EnemyHit] Colisão com o player detectada. Dano causado: {damage}");
+            // Debug.Log($"[EnemyHit] Colisão com o player detectada. Dano causado: {damage}");
 
             // Aqui você pode aplicar o dano no script do player, tipo:
             // other.GetComponent<PlayerHealth>()?.TakeDamage(damage);
