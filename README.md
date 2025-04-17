@@ -16,7 +16,6 @@
 - **brian**  
   Branch do Brian.
 
--**Sera criado uma branch para o Ryan, Anderson e Marcelo**
 ---
 
 ## 🚀 Regras IMPORTANTES!
@@ -30,6 +29,13 @@
 
 
 ---
+
+git branch - verifica ser ta na sua branch (exemplo: brian) 
+git pull origin development - puxa as alterações da development 
+git add . 
+git commit -m "✨ feat: descrição do que você fez"
+git push origin nome-da-sua-branch (exemplo: git push origin brian)
+
 
 ## 🛠️ Comandos Git
 
