@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerStamina : MonoBehaviour
 {
@@ -6,16 +7,37 @@ public class PlayerStamina : MonoBehaviour
     public float recoveryTime = 0.5f;
     private int currentStamina;
     private float timer;
-
     public int CurrentStamina => currentStamina;
+
+    public Slider staminaSlider;
+    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
+    public GameObject noStaminaPrefab;
+    private GameObject sliderWorldObject;
 
     void Start()
     {
         currentStamina = maxStamina;
+        if (staminaSlider != null)
+        {
+            CreateWorldSpaceSlider();
+        }
+        else
+        {
+            Debug.LogError("Atribua um Slider UI no Inspector para Stamina!");
+        }
     }
 
+    void LateUpdate()
+    {
+        if (sliderWorldObject != null)
+        {
+            sliderWorldObject.transform.position = transform.position + sliderOffset;
+            FaceSliderToCamera();
+        }
+    }
     void Update()
     {
+        UpdateStaminaUI();
         if (currentStamina < maxStamina)
         {
             timer += Time.deltaTime;
@@ -36,6 +58,48 @@ public class PlayerStamina : MonoBehaviour
             return true;
         }
         Debug.Log("Stamina insuficiente. Recuperação de stamina pausada.");
+        ShowNoStaminaMessage(); // Chama o texto flutuante
         return false;
+
+    }
+
+    void CreateWorldSpaceSlider()
+    {
+        sliderWorldObject = new GameObject("StaminaSliderWorld");
+        sliderWorldObject.transform.SetParent(transform);
+        sliderWorldObject.transform.localPosition = sliderOffset;
+
+        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
+
+        Slider worldSlider = Instantiate(staminaSlider, sliderWorldObject.transform);
+        worldSlider.transform.localPosition = Vector3.zero;
+        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
+
+        staminaSlider = worldSlider;
+        staminaSlider.value = 1f;
+    }
+
+    void UpdateStaminaUI()
+    {
+        if (staminaSlider == null) return;
+
+        float fill = (float)currentStamina / maxStamina;
+        staminaSlider.value = fill;
+    }
+
+    void FaceSliderToCamera()
+    {
+        if (sliderWorldObject != null && Camera.main != null)
+        {
+            sliderWorldObject.transform.forward = -Camera.main.transform.forward;
+        }
+    }
+    private void ShowNoStaminaMessage()
+    {
+        Vector3 spawnPosition = transform.position + Vector3.up * 1.5f;
+        GameObject textObj = Instantiate(noStaminaPrefab, spawnPosition, Quaternion.identity);
+        Destroy(textObj, 1.5f);
     }
 }

@@ -6,17 +6,13 @@ public class PlayerAttackMelee : MonoBehaviour
     [Header("Referência para a Arma")]
     [Tooltip("Arraste aqui o objeto da arma que contém o BoxCollider.")]
     public GameObject weaponObject;
-    public float attackRange = 2f;
     public float attackDamage = 20f;
     private PlayerStamina playerStamina;
 
     private int comboIndex = 0;
     private float comboResetTime = 1.5f;
     private float comboTimer = 0f;
-
-
     public float knockbackForce = 5f;
-
     public Animator playerAnimator;
 
     public ParticleSystem weaponEffect;
@@ -26,9 +22,8 @@ public class PlayerAttackMelee : MonoBehaviour
     private BoxCollider _weaponCollider;
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
     private Vector3 _originalColliderSize;
-    private Vector3 _attackColliderSize = new Vector3(1f, 1f, 2f);
 
-    public float attackColliderCenterYOffset = 0.2f;
+    public float attackRangeFactor = 1f;
 
     private void Start()
     {
@@ -88,21 +83,17 @@ public class PlayerAttackMelee : MonoBehaviour
         if (comboIndex == 0)
         {
             playerAnimator.SetTrigger("PlayerMelee");
-            CanMove = false;
         }
         else if (comboIndex % 2 == 1)
         {
             playerAnimator.SetTrigger("AtkCombo1");
-            CanMove = false;
         }
         else if (comboIndex % 2 == 0)
         {
             playerAnimator.SetTrigger("AtkCombo2");
-            CanMove = false;
         }
 
         comboIndex++;
-        Invoke(nameof(ResetIsAttacking), 0.5f);
     }
 
     private void ResetCombo()
@@ -127,11 +118,18 @@ public class PlayerAttackMelee : MonoBehaviour
         CanMove = true;
     }
 
+    private void EndAttackAnimation()
+    {
+        IsAttacking = false;
+        CanMove = true;
+    }
+
     public void EnableCollider()
     {
         if (_weaponCollider != null)
         {
-            _weaponCollider.size = _attackColliderSize;
+            Vector3 newSize = _originalColliderSize * attackRangeFactor;
+            _weaponCollider.size = newSize;
             _weaponCollider.enabled = true;
         }
         _enemiesHit.Clear();
@@ -172,7 +170,6 @@ public class PlayerAttackMelee : MonoBehaviour
         if (_weaponCollider != null)
         {
             _weaponCollider.enabled = false;
-            _weaponCollider.size = _originalColliderSize;
         }
         _enemiesHit.Clear();
         CanMove = true;
