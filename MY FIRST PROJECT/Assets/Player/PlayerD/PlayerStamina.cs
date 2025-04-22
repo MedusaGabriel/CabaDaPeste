@@ -13,10 +13,13 @@ public class PlayerStamina : MonoBehaviour
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
     public GameObject noStaminaPrefab;
     private GameObject sliderWorldObject;
+    private PlayerStatus playerStatus;
+
 
     void Start()
     {
-        currentStamina = maxStamina;
+        playerStatus = GetComponent<PlayerStatus>();
+        currentStamina = playerStatus.maxStamina;
         if (staminaSlider != null)
         {
             CreateWorldSpaceSlider();
@@ -38,10 +41,10 @@ public class PlayerStamina : MonoBehaviour
     void Update()
     {
         UpdateStaminaUI();
-        if (currentStamina < maxStamina)
+        if (currentStamina < playerStatus.maxStamina)
         {
             timer += Time.deltaTime;
-            if (timer >= recoveryTime)
+            if (timer >= playerStatus.staminaRecoveryTime)
             {
                 currentStamina++;
                 timer = 0f;
@@ -54,11 +57,9 @@ public class PlayerStamina : MonoBehaviour
         if (currentStamina >= amount)
         {
             currentStamina -= amount;
-            Debug.Log($"Stamina consumida: {amount}. Stamina restante: {currentStamina}");
             return true;
         }
-        Debug.Log("Stamina insuficiente. Recuperação de stamina pausada.");
-        ShowNoStaminaMessage(); // Chama o texto flutuante
+        ShowNoStaminaMessage(); 
         return false;
 
     }
@@ -85,7 +86,7 @@ public class PlayerStamina : MonoBehaviour
     {
         if (staminaSlider == null) return;
 
-        float fill = (float)currentStamina / maxStamina;
+        float fill = (float)currentStamina / playerStatus.maxStamina;
         staminaSlider.value = fill;
     }
 

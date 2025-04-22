@@ -6,15 +6,12 @@ public class PlayerAttackMelee : MonoBehaviour
     [Header("Referência para a Arma")]
     [Tooltip("Arraste aqui o objeto da arma que contém o BoxCollider.")]
     public GameObject weaponObject;
-    public float attackDamage = 20f;
     private PlayerStamina playerStamina;
-
+    private PlayerStatus playerStatus;
     private int comboIndex = 0;
     private float comboResetTime = 1.5f;
     private float comboTimer = 0f;
-    public float knockbackForce = 5f;
     public Animator playerAnimator;
-
     public ParticleSystem weaponEffect;
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
@@ -23,11 +20,10 @@ public class PlayerAttackMelee : MonoBehaviour
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
     private Vector3 _originalColliderSize;
 
-    public float attackRangeFactor = 1f;
-
     private void Start()
     {
         playerStamina = GetComponent<PlayerStamina>();
+        playerStatus = GetComponent<PlayerStatus>();
 
         if (weaponObject != null)
         {
@@ -59,7 +55,8 @@ public class PlayerAttackMelee : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && !IsAttacking && playerStamina.TryConsumeStamina())
+        // Troque KeyCode.E por clique do mouse (botão esquerdo)
+        if (Input.GetMouseButtonDown(0) && !IsAttacking && playerStamina.TryConsumeStamina())
         {
             PerformComboAttack();
         }
@@ -128,7 +125,7 @@ public class PlayerAttackMelee : MonoBehaviour
     {
         if (_weaponCollider != null)
         {
-            Vector3 newSize = _originalColliderSize * attackRangeFactor;
+            Vector3 newSize = _originalColliderSize * playerStatus.attackRange;
             _weaponCollider.size = newSize;
             _weaponCollider.enabled = true;
         }
@@ -144,8 +141,8 @@ public class PlayerAttackMelee : MonoBehaviour
             EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.TakeDamage(attackDamage);
-                Debug.Log("Dano causado ao inimigo " + other.name + ": " + attackDamage);
+                enemyHealth.TakeDamage(playerStatus.attackDamage);
+                Debug.Log($"Ataque acertou {other.gameObject.name} causando {playerStatus.attackDamage} de dano.");
             }
 
             Rigidbody enemyRigidbody = other.GetComponent<Rigidbody>();
@@ -154,11 +151,11 @@ public class PlayerAttackMelee : MonoBehaviour
 
             if (enemyController != null)
             {
-                enemyController.ApplyKnockback(knockbackDirection, knockbackForce);
+                enemyController.ApplyKnockback(knockbackDirection, playerStatus.knockbackForce);
             }
             else if (enemyRigidbody != null)
             {
-                enemyRigidbody.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
+                enemyRigidbody.AddForce(knockbackDirection * playerStatus.knockbackForce, ForceMode.Impulse);
             }
 
             _enemiesHit.Add(other.gameObject);

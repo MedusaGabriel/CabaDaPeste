@@ -5,7 +5,6 @@ using System.Collections;
 public class EnemyHealth : MonoBehaviour
 {
     [Header("Health Settings")]
-    public float maxHealth = 50f;   
     private float currentHealth;
 
     [Header("Health UI")]
@@ -13,10 +12,27 @@ public class EnemyHealth : MonoBehaviour
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
     public Animator enemyAnimator;
     private GameObject sliderWorldObject;
+    public GameObject playerGameObject;
+
+    private EnemyStatus enemyStatus;
 
     void Start()
     {
-        currentHealth = maxHealth;
+        enemyStatus = GetComponent<EnemyStatus>();
+        if (enemyStatus == null)
+        {
+            Debug.LogError("EnemyStatus não encontrado!");
+            return;
+        }
+
+        currentHealth = enemyStatus.maxHealth;
+
+        if (playerGameObject == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+                playerGameObject = playerObj;
+        }
 
         if (healthSlider != null)
         {
@@ -38,7 +54,7 @@ public class EnemyHealth : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0, enemyStatus.maxHealth);
 
         if (enemyAnimator != null)
         {
@@ -59,28 +75,28 @@ public class EnemyHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            // Debug.Log("Inimigo vai morrer");
             StartCoroutine(WaitAndDestroy());
         }
     }
 
     public void Die()
     {
+
         StartCoroutine(WaitAndDestroy());
     }
 
     private IEnumerator WaitAndDestroy()
     {
-        yield return new WaitForSeconds(2f); // Tempo extra, se necessário
+        yield return new WaitForSeconds(2f);
+        GetComponent<ExpDrop>().DropXP(playerGameObject);
         Destroy(gameObject);
-        // Debug.Log("Inimigo Morreu");
     }
 
     void UpdateHealthUI()
     {
         if (healthSlider == null) return;
 
-        float healthPercent = currentHealth / maxHealth;
+        float healthPercent = currentHealth / enemyStatus.maxHealth;
         healthSlider.value = healthPercent;
 
         healthSlider.gameObject.SetActive(currentHealth > 0);

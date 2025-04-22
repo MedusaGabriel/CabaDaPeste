@@ -4,11 +4,11 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
-    public float speed = 3f;
-    public float angularSpeed = 0f;
-    public float acceleration = 10f;
-    public float attackCooldown = 1.5f;
-    public float attackRange = 2f;
+    // public float speed = 3f;
+    // public float angularSpeed = 0f;
+    // public float acceleration = 10f;
+    // public float attackCooldown = 1.5f;
+    // public float attackRange = 2f;
     public bool canChasePlayer = true;
 
     private float lastAttackTime = 0f;
@@ -19,8 +19,11 @@ public class EnemyController : MonoBehaviour
     private bool isHit = false;
     private float storedAngularSpeed;
 
+    private EnemyStatus enemyStatus;
+
     void Start()
     {
+        enemyStatus = GetComponent<EnemyStatus>();
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
         {
@@ -37,9 +40,9 @@ public class EnemyController : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         if (agent != null)
         {
-            agent.speed = speed;
-            agent.angularSpeed = angularSpeed;
-            agent.acceleration = acceleration;
+            agent.speed = enemyStatus.speed;
+            agent.angularSpeed = enemyStatus.angularSpeed;
+            agent.acceleration = enemyStatus.acceleration;
             agent.autoBraking = false;
         }
 
@@ -82,7 +85,7 @@ public class EnemyController : MonoBehaviour
             {
                 float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-                if (distanceToPlayer <= attackRange)
+                if (distanceToPlayer <= enemyStatus.attackRange)
                 {
                     if (!animator.GetBool("IsAttacking"))
                         animator.SetBool("IsAttacking", true);
@@ -111,7 +114,7 @@ public class EnemyController : MonoBehaviour
 
     private void TryDealDamage(GameObject playerObj)
     {
-        if (Time.time >= lastAttackTime + attackCooldown)
+        if (Time.time >= lastAttackTime + enemyStatus.attackCooldown)
         {
             PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
             if (playerHealth != null && enemyHit != null)
@@ -125,7 +128,7 @@ public class EnemyController : MonoBehaviour
 
     public void ApplyKnockback(Vector3 direction, float force)
     {
-        if (agent != null  && agent.enabled && agent.isOnNavMesh)
+        if (agent != null && agent.enabled && agent.isOnNavMesh)
         {
             agent.isStopped = true;
             agent.enabled = false;
