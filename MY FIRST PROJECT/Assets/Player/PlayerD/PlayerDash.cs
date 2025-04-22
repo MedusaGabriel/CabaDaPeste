@@ -5,9 +5,7 @@ using UnityEngine.UI;
 public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-    public float dashSpeed = 20f;
-    public float dashTime = 0.25f;
-    public float dashCooldown = 2f;
+
     public string dashParam = "Dash";
     public string dashTrigger = "IsDash";
 
@@ -22,9 +20,12 @@ public class PlayerDash : MonoBehaviour
     private GameObject sliderWorldObject;
     private PlayerAttackMelee _playerAttackMelee;
     private PlayerTarget _playerTarget;
+    private PlayerStatus playerStatus;
+
 
     void Start()
     {
+        playerStatus = GetComponent<PlayerStatus>();
         _rigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
 
@@ -74,12 +75,11 @@ public class PlayerDash : MonoBehaviour
 
     void TryDash()
     {
-        if (!isDashing && Time.time > lastDashTime + dashCooldown)
+        if (!isDashing && Time.time > lastDashTime + playerStatus.dashCooldown)
         {
             StartCoroutine(DashRoutine());
         }
     }
-
     IEnumerator DashRoutine()
     {
         isDashing = true;
@@ -91,13 +91,12 @@ public class PlayerDash : MonoBehaviour
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
-        // Define a direção do dash
         Vector3 dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
 
         float startTime = Time.time;
-        while (Time.time < startTime + dashTime)
+        while (Time.time < startTime + playerStatus.dashTime)
         {
-            _rigidbody.linearVelocity = dashDirection * dashSpeed * dashValue;
+            _rigidbody.linearVelocity = dashDirection * playerStatus.dashSpeed * dashValue;
             yield return null;
         }
 
@@ -109,7 +108,7 @@ public class PlayerDash : MonoBehaviour
     {
         if (cooldownSlider == null) return;
 
-        float progress = Mathf.Clamp01((Time.time - lastDashTime) / dashCooldown);
+        float progress = Mathf.Clamp01((Time.time - lastDashTime) / playerStatus.dashCooldown);
         cooldownSlider.value = progress;
         cooldownSlider.gameObject.SetActive(progress < 1f);
     }

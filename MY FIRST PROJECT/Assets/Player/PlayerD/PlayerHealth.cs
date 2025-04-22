@@ -4,11 +4,13 @@ using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour
 {
-    public int maxHealth = 100;
+    [Header("Status Gerais")]
     public int currentHealth;
     public GameObject gameOverCanvas;
     public Button restartButton;
     public bool isInvulnerable = false;
+    private PlayerStatus playerStatus;
+
 
     [Header("Health UI")]
     public Slider healthSlider;
@@ -18,7 +20,8 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
-        currentHealth = maxHealth;
+        playerStatus = GetComponent<PlayerStatus>();
+        currentHealth = playerStatus.maxHealth;
         gameOverCanvas.SetActive(false);
 
         if (healthSlider != null)
@@ -45,7 +48,7 @@ public class PlayerHealth : MonoBehaviour
         if (isInvulnerable) return;
 
         currentHealth -= damage;
-        currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth, 0, playerStatus.maxHealth);
 
         if (currentHealth <= 0)
         {
@@ -53,11 +56,11 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    void UpdateHealthUI()
+    public void UpdateHealthUI()
     {
         if (healthSlider == null) return;
 
-        float healthPercent = (float)currentHealth / maxHealth;
+        float healthPercent = (float)currentHealth / playerStatus.maxHealth;
         healthSlider.value = healthPercent;
 
         healthSlider.gameObject.SetActive(currentHealth > 0);
