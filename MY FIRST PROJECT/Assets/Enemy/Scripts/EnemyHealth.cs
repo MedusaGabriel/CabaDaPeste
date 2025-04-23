@@ -39,10 +39,7 @@ public class EnemyHealth : MonoBehaviour
             healthSlider.gameObject.SetActive(false);
             CreateWorldSpaceSlider();
         }
-        else
-        {
-            Debug.LogError("Atribua um Slider UI no Inspector!");
-        }
+
     }
 
     void Update()

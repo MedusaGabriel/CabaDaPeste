@@ -11,6 +11,7 @@ public class PlayerLevelUp : MonoBehaviour
     private int baseMaxStamina;
     private float baseMoveSpeed;
     private float baseSprintSpeed;
+    public GameObject upgradePanel;
 
     [Header("Configuração de XP para Level Up")]
     [Tooltip("XP necessário para o level 2 = XP base + % (ex: 49 + 20% = 58,8 para level 2) ")]
@@ -35,7 +36,7 @@ public class PlayerLevelUp : MonoBehaviour
 
     private PlayerStatus playerStatus;
 
-    void Start()
+    public void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
         baseMaxHealth = playerStatus.maxHealth;
@@ -60,7 +61,7 @@ public class PlayerLevelUp : MonoBehaviour
         }
     }
 
-    private void LevelUp()
+    public void LevelUp()
     {
         int oldHealth = playerStatus.maxHealth;
         int oldStamina = playerStatus.maxStamina;
@@ -92,6 +93,11 @@ public class PlayerLevelUp : MonoBehaviour
             $"XP para o próximo level: {xpToNextLevel - currentXP}\n" +
             $"Vida curada para {playerStatus.currentHealth}"
         );
+        // if (level % 3 == 0)
+        // {
+            Time.timeScale = 0f;
+            upgradePanel.SetActive(true);
+        // }
     }
 
     private int CalculateXPForNextLevel(int currentLevel, int previousXP)
@@ -111,5 +117,26 @@ public class PlayerLevelUp : MonoBehaviour
         playerStatus.attackDamage = baseAttackDamage + (level - 1) * 2f;
         playerStatus.moveSpeed = baseMoveSpeed + (level - 1) * 0.1f;
         playerStatus.sprintSpeed = baseSprintSpeed + (level - 1) * 0.1f;
+    }
+
+    public void ChooseUpgrade(string upgradeType)
+    {
+        switch (upgradeType)
+        {
+            case "Attack":
+                playerStatus.attackDamage += 20f;
+                Debug.Log("Upgrade escolhido: Attack (+20 de dano) aplicado!");
+                break;
+            case "SpeedAttack":
+                playerStatus.attackSpeed += 0.5f; // ajuste o valor conforme desejar
+                Debug.Log("Upgrade escolhido: SpeedAttack (+0.5 de velocidade de ataque) aplicado!");
+                break;
+            case "KnockBack":
+                playerStatus.knockbackForce += 20f;
+                Debug.Log("Upgrade escolhido: KnockBack (+20 de knockback) aplicado!");
+                break;
+        }
+        upgradePanel.SetActive(false);
+        Time.timeScale = 1f;
     }
 }
