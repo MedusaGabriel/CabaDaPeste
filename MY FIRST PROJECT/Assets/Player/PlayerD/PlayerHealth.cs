@@ -10,6 +10,7 @@ public class PlayerHealth : MonoBehaviour
     public Button restartButton;
     public bool isInvulnerable = false;
     private PlayerStatus playerStatus;
+    public Animator playerAnimator;
 
 
     [Header("Health UI")]
@@ -96,6 +97,13 @@ public class PlayerHealth : MonoBehaviour
     {
         Debug.Log("Player morreu!");
         gameOverCanvas.SetActive(true);
+        playerAnimator.SetTrigger("Death");
+        StartCoroutine(PauseGameAfterDelay(2f));
+    }
+
+    private System.Collections.IEnumerator PauseGameAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
         Time.timeScale = 0f;
     }
 

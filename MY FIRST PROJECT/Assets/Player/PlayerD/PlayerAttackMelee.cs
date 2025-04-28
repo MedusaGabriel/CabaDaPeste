@@ -98,7 +98,6 @@ public class PlayerAttackMelee : MonoBehaviour
         comboIndex++;
     }
 
-    // Animation Event: Adicione no final de cada animação de ataque
     public void OnAttackAnimationEnd()
     {
         if (comboQueued && playerStamina.TryConsumeStamina())
@@ -126,7 +125,6 @@ public class PlayerAttackMelee : MonoBehaviour
         CanMove = canMove;
     }
 
-    // Animation Event: Ative no início do ataque
     public void EnableCollider()
     {
         if (_weaponCollider != null)
@@ -136,23 +134,29 @@ public class PlayerAttackMelee : MonoBehaviour
             _weaponCollider.enabled = true;
         }
         _enemiesHit.Clear();
-        CanMove = false;
         playerAnimator.SetBool("IsAttacking", true);
     }
 
-    // Animation Event: Desative no fim do ataque
     public void DisableCollider()
     {
         if (_weaponCollider != null)
             _weaponCollider.enabled = false;
 
         _enemiesHit.Clear();
-        CanMove = true;
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
 
         if (weaponEffect != null)
             weaponEffect.Stop();
+    }
+    public void MovePlayerOn()
+    {
+        CanMove = true;
+    }
+
+    public void MovePlayerOff()
+    {
+        CanMove = false;
     }
 
     private void OnTriggerEnter(Collider other)
