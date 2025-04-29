@@ -16,8 +16,10 @@ public class EnemyController : MonoBehaviour
     private NavMeshAgent agent;
     private Animator animator;
     private EnemyHit enemyHit;
-    private bool isHit = false;
     private float storedAngularSpeed;
+    private bool isAttacking = false;
+    private bool canCombo = true;
+    private bool isHit = false;
 
     private EnemyStatus enemyStatus;
 
@@ -81,37 +83,54 @@ public class EnemyController : MonoBehaviour
     {
         if (agent != null && agent.enabled)
         {
+            float moveSpeed = agent.velocity.magnitude / enemyStatus.speed;
+            animator.SetFloat("Move", moveSpeed);
+
             if (player != null && !isHit && canChasePlayer)
             {
                 float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
                 if (distanceToPlayer <= enemyStatus.attackRange)
                 {
-                    if (!animator.GetBool("IsAttacking"))
-                        animator.SetBool("IsAttacking", true);
-
                     agent.isStopped = true;
+
+                    // Se não está atacando, dispara o trigger de ataque
+                    if (!isAttacking)
+                    {
+                        animator.SetTrigger("Attack");
+                        isAttacking = true;
+                    }
+                    else if (canCombo)
+                    {
+                        animator.SetTrigger("ComboAttack");
+                        canCombo = false; // Bloqueia até o próximo combo permitido
+                    }
+
                     TryDealDamage(player.gameObject);
                 }
                 else
                 {
-                    if (animator.GetBool("IsAttacking"))
-                        animator.SetBool("IsAttacking", false);
-
                     agent.isStopped = false;
                     agent.SetDestination(player.position);
+
                 }
             }
             else
             {
-                if (animator.GetBool("IsAttacking"))
-                    animator.SetBool("IsAttacking", false);
-
-                agent.isStopped = true; // Para o agente
+                agent.isStopped = true;
             }
         }
     }
+    void EnableCombo()
+    {
+        canCombo = true;
+    }
 
+    void ResetAttack()
+    {
+        isAttacking = false;
+        canCombo = true;
+    }
     private void TryDealDamage(GameObject playerObj)
     {
         if (Time.time >= lastAttackTime + enemyStatus.attackCooldown)
