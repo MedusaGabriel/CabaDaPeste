@@ -4,13 +4,7 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
-    // public float speed = 3f;
-    // public float angularSpeed = 0f;
-    // public float acceleration = 10f;
-    // public float attackCooldown = 1.5f;
-    // public float attackRange = 2f;
     public bool canChasePlayer = true;
-
     private float lastAttackTime = 0f;
     private Transform player;
     private NavMeshAgent agent;
@@ -67,7 +61,6 @@ public class EnemyController : MonoBehaviour
         {
             storedAngularSpeed = agent.angularSpeed;
             agent.isStopped = true;
-            agent.angularSpeed = 0f;
         }
     }
     public void OnHitAnimationEnd()
@@ -78,47 +71,51 @@ public class EnemyController : MonoBehaviour
             agent.isStopped = false;
             agent.angularSpeed = storedAngularSpeed;
         }
+        ResetAttack();
     }
     void Update()
     {
-        if (agent != null && agent.enabled)
+        if (agent == null || !agent.enabled)
+            return;
+
+        animator.SetFloat("Move", agent.velocity.magnitude / enemyStatus.speed);
+
+        if (isHit || !canChasePlayer || player == null)
         {
-            float moveSpeed = agent.velocity.magnitude / enemyStatus.speed;
-            animator.SetFloat("Move", moveSpeed);
+            agent.isStopped = true;
+            return;
+        }
 
-            if (player != null && !isHit && canChasePlayer)
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+        if (distanceToPlayer <= enemyStatus.attackRange)
+        {
+            agent.isStopped = true;
+
+            if (!isAttacking)
             {
-                float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-                if (distanceToPlayer <= enemyStatus.attackRange)
-                {
-                    agent.isStopped = true;
-
-                    // Se não está atacando, dispara o trigger de ataque
-                    if (!isAttacking)
-                    {
-                        animator.SetTrigger("Attack");
-                        isAttacking = true;
-                    }
-                    else if (canCombo)
-                    {
-                        animator.SetTrigger("ComboAttack");
-                        canCombo = false; // Bloqueia até o próximo combo permitido
-                    }
-
-                    TryDealDamage(player.gameObject);
-                }
-                else
-                {
-                    agent.isStopped = false;
-                    agent.SetDestination(player.position);
-
-                }
+                animator.SetTrigger("Attack");
+                isAttacking = true;
             }
-            else
+            else if (canCombo && distanceToPlayer <= enemyStatus.attackRange)
             {
-                agent.isStopped = true;
+                animator.SetTrigger("ComboAttack");
+                canCombo = false;
             }
+        }
+        else
+        {
+            agent.isStopped = false;
+            agent.SetDestination(player.position);
+        }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (enemyStatus != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, enemyStatus.attackRange);
         }
     }
     void EnableCombo()
@@ -131,11 +128,11 @@ public class EnemyController : MonoBehaviour
         isAttacking = false;
         canCombo = true;
     }
-    private void TryDealDamage(GameObject playerObj)
+    public void DealDamage()
     {
-        if (Time.time >= lastAttackTime + enemyStatus.attackCooldown)
+        if (player != null && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
         {
-            PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (playerHealth != null && enemyHit != null)
             {
                 int damage = enemyHit.CalculateDamage();
@@ -170,10 +167,6 @@ public class EnemyController : MonoBehaviour
         {
             transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / knockbackDuration);
 
-            // if (NavMesh.SamplePosition(nextPosition, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
-            // {
-            //     transform.position = hit.position;
-            // }
             elapsedTime += Time.deltaTime;
             yield return null;
         }

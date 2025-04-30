@@ -11,6 +11,7 @@ public class PlayerHealth : MonoBehaviour
     public bool isInvulnerable = false;
     private PlayerStatus playerStatus;
     public Animator playerAnimator;
+    private bool isDead = false;
 
 
     [Header("Health UI")]
@@ -46,7 +47,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (isInvulnerable) return;
+        if (isInvulnerable || isDead) return;
 
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStatus.maxHealth);
@@ -95,6 +96,9 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return; 
+        isDead = true;
+
         Debug.Log("Player morreu!");
         gameOverCanvas.SetActive(true);
         playerAnimator.SetTrigger("Death");
