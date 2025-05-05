@@ -70,6 +70,7 @@ public class EnemyController : MonoBehaviour
         {
             agent.isStopped = false;
             agent.angularSpeed = storedAngularSpeed;
+            agent.updateRotation = true;
         }
         ResetAttack();
     }
@@ -115,6 +116,7 @@ public class EnemyController : MonoBehaviour
         if (enemyStatus != null)
         {
             Gizmos.color = Color.red;
+            Vector3 gizmosPosition = transform.position + Vector3.up * (enemyStatus.height / 2f);
             Gizmos.DrawWireSphere(transform.position, enemyStatus.attackRange);
         }
     }

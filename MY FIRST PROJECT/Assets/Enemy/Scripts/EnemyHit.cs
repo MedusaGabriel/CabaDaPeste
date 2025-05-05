@@ -21,6 +21,7 @@ public class EnemyHit : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             int damage = CalculateDamage();
+            
         }
     }
 }

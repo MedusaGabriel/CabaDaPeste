@@ -18,24 +18,12 @@ public class PlayerAttackMelee : MonoBehaviour
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
 
-    private BoxCollider _weaponCollider;
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
-    private Vector3 _originalColliderSize;
 
     private void Start()
     {
         playerStamina = GetComponent<PlayerStamina>();
         playerStatus = GetComponent<PlayerStatus>();
-
-        if (weaponObject != null)
-        {
-            _weaponCollider = weaponObject.GetComponent<BoxCollider>();
-            if (_weaponCollider != null)
-            {
-                _originalColliderSize = _weaponCollider.size;
-                _weaponCollider.enabled = false;
-            }
-        }
 
         if (weaponEffect != null)
             weaponEffect.Stop();
@@ -127,21 +115,43 @@ public class PlayerAttackMelee : MonoBehaviour
 
     public void EnableCollider()
     {
-        if (_weaponCollider != null)
-        {
-            Vector3 newSize = _originalColliderSize * playerStatus.attackRange;
-            _weaponCollider.size = newSize;
-            _weaponCollider.enabled = true;
-        }
         _enemiesHit.Clear();
+
+        float attackRange = playerStatus.attackRange;
+        float attackAngle = 90f;
+
+        Collider[] hitEnemies = Physics.OverlapSphere(transform.position, attackRange);
+
+        foreach (Collider enemy in hitEnemies)
+        {
+            if (enemy.CompareTag("Enemy") && !_enemiesHit.Contains(enemy.gameObject))
+            {
+                Vector3 directionToEnemy = (enemy.transform.position - transform.position).normalized;
+
+                float angleToEnemy = Vector3.Angle(transform.forward, directionToEnemy);
+                if (angleToEnemy <= attackAngle / 2f)
+                {
+                    EnemyHealth enemyHealth = enemy.GetComponent<EnemyHealth>();
+                    if (enemyHealth != null)
+                        enemyHealth.TakeDamage(playerStatus.attackDamage);
+
+                    EnemyController enemyController = enemy.GetComponent<EnemyController>();
+                    if (enemyController != null)
+                    {
+                        Vector3 knockbackDirection = directionToEnemy;
+                        enemyController.ApplyKnockback(knockbackDirection, playerStatus.knockbackForce);
+                    }
+
+                    _enemiesHit.Add(enemy.gameObject);
+                }
+            }
+        }
+
         playerAnimator.SetBool("IsAttacking", true);
     }
 
     public void DisableCollider()
     {
-        if (_weaponCollider != null)
-            _weaponCollider.enabled = false;
-
         _enemiesHit.Clear();
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
@@ -159,24 +169,37 @@ public class PlayerAttackMelee : MonoBehaviour
         CanMove = false;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnDrawGizmosSelected()
     {
-        if (other.CompareTag("Enemy") && !_enemiesHit.Contains(other.gameObject))
+        if (playerStatus != null)
         {
-            EnemyHealth enemyHealth = other.GetComponent<EnemyHealth>();
-            if (enemyHealth != null)
-                enemyHealth.TakeDamage(playerStatus.attackDamage);
+            Gizmos.color = Color.blue;
 
-            Rigidbody enemyRigidbody = other.GetComponent<Rigidbody>();
-            EnemyController enemyController = other.GetComponent<EnemyController>();
-            Vector3 knockbackDirection = (other.transform.position - transform.position).normalized;
+            // Parâmetros da meia-lua
+            float attackRange = playerStatus.attackRange; // Distância máxima do ataque
+            float attackAngle = 90f; // Ângulo da meia-lua (90 graus)
 
-            if (enemyController != null)
-                enemyController.ApplyKnockback(knockbackDirection, playerStatus.knockbackForce);
-            else if (enemyRigidbody != null)
-                enemyRigidbody.AddForce(knockbackDirection * playerStatus.knockbackForce, ForceMode.Impulse);
+            // Desenha a meia-lua
+            Vector3 forward = transform.forward;
+            Vector3 startPosition = transform.position;
 
-            _enemiesHit.Add(other.gameObject);
+            int segments = 20; // Número de segmentos para desenhar o arco
+            float angleStep = attackAngle / segments;
+
+            Vector3 previousPoint = startPosition + Quaternion.Euler(0, -attackAngle / 2f, 0) * forward * attackRange;
+
+            for (int i = 1; i <= segments; i++)
+            {
+                float currentAngle = -attackAngle / 2f + i * angleStep;
+                Vector3 currentPoint = startPosition + Quaternion.Euler(0, currentAngle, 0) * forward * attackRange;
+
+                Gizmos.DrawLine(previousPoint, currentPoint);
+                previousPoint = currentPoint;
+            }
+
+            // Conecta o arco ao centro
+            Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, -attackAngle / 2f, 0) * forward * attackRange);
+            Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, attackAngle / 2f, 0) * forward * attackRange);
         }
     }
 }

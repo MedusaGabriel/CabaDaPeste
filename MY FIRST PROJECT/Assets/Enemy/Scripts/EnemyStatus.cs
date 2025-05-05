@@ -18,4 +18,8 @@ public class EnemyStatus : MonoBehaviour
     [Header("Recompensa")]
     public int xpDrop = 10;
 
+    [Header("Others")]
+    public float height = 2f;
+    public float width = 1f;
+
 }
