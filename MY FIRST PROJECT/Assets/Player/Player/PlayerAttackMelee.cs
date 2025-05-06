@@ -175,7 +175,6 @@ public class PlayerAttackMelee : MonoBehaviour
         {
             Gizmos.color = Color.blue;
 
-            // Parâmetros da meia-lua
             float attackRange = playerStatus.attackRange; // Distância máxima do ataque
             float attackAngle = 90f; // Ângulo da meia-lua (90 graus)
 

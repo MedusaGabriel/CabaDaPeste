@@ -56,21 +56,25 @@ public class EnemyController : MonoBehaviour
     }
     public void OnHitAnimationStart()
     {
+        Debug.Log("OnHitAnimationStart chamado");
         isHit = true;
-        if (agent != null & agent.enabled)
+        if (agent != null && agent.enabled)
         {
             storedAngularSpeed = agent.angularSpeed;
-            agent.isStopped = true;
+            agent.isStopped = true; 
+            agent.updateRotation = false; 
         }
     }
+
     public void OnHitAnimationEnd()
     {
+        Debug.Log("OnHitAnimationEnd chamado");
         isHit = false;
-        if (agent != null & agent.enabled)
+        if (agent != null && agent.enabled)
         {
-            agent.isStopped = false;
             agent.angularSpeed = storedAngularSpeed;
-            agent.updateRotation = true;
+            agent.isStopped = false; 
+
         }
         ResetAttack();
     }
@@ -93,10 +97,11 @@ public class EnemyController : MonoBehaviour
         {
             agent.isStopped = true;
 
-            if (!isAttacking)
+            if (!isAttacking && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
             {
                 animator.SetTrigger("Attack");
                 isAttacking = true;
+                lastAttackTime = Time.time;
             }
             else if (canCombo && distanceToPlayer <= enemyStatus.attackRange)
             {
@@ -127,8 +132,10 @@ public class EnemyController : MonoBehaviour
 
     void ResetAttack()
     {
+        Debug.Log("Resetando ataque");
         isAttacking = false;
         canCombo = true;
+        
     }
     public void DealDamage()
     {
