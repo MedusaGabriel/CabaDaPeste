@@ -15,6 +15,8 @@ public class EnemyController : MonoBehaviour
     private bool canCombo = true;
     private bool isHit = false;
 
+    [Header("Ataque")]
+    public float attackAngle = 90f;
     private EnemyStatus enemyStatus;
 
     void Start()
@@ -61,8 +63,8 @@ public class EnemyController : MonoBehaviour
         if (agent != null && agent.enabled)
         {
             storedAngularSpeed = agent.angularSpeed;
-            agent.isStopped = true; 
-            agent.updateRotation = false; 
+            agent.isStopped = true;
+            agent.updateRotation = false;
         }
     }
 
@@ -73,8 +75,8 @@ public class EnemyController : MonoBehaviour
         if (agent != null && agent.enabled)
         {
             agent.angularSpeed = storedAngularSpeed;
-            agent.isStopped = false; 
-
+            agent.isStopped = false;
+            agent.updateRotation = true;
         }
         ResetAttack();
     }
@@ -93,7 +95,11 @@ public class EnemyController : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        if (distanceToPlayer <= enemyStatus.attackRange)
+        // Verifica se o player está dentro do cone de ataque
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= attackAngle / 2f)
         {
             agent.isStopped = true;
 
@@ -121,10 +127,26 @@ public class EnemyController : MonoBehaviour
         if (enemyStatus != null)
         {
             Gizmos.color = Color.red;
-            Vector3 gizmosPosition = transform.position + Vector3.up * (enemyStatus.height / 2f);
-            Gizmos.DrawWireSphere(transform.position, enemyStatus.attackRange);
+            Vector3 center = transform.position + Vector3.up * (enemyStatus.height / 2f);
+
+            // Desenha linhas para mostrar o cone
+            int segments = 30;
+            float halfAngle = attackAngle / 2f;
+            float radius = enemyStatus.attackRange;
+            Vector3 forward = transform.forward;
+
+            Vector3 prevPoint = center + Quaternion.Euler(0, -halfAngle, 0) * forward * radius;
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = -halfAngle + (attackAngle * i / segments);
+                Vector3 nextPoint = center + Quaternion.Euler(0, angle, 0) * forward * radius;
+                Gizmos.DrawLine(prevPoint, nextPoint);
+                Gizmos.DrawLine(center, nextPoint);
+                prevPoint = nextPoint;
+            }
         }
     }
+
     void EnableCombo()
     {
         canCombo = true;
@@ -135,18 +157,24 @@ public class EnemyController : MonoBehaviour
         Debug.Log("Resetando ataque");
         isAttacking = false;
         canCombo = true;
-        
+
     }
     public void DealDamage()
     {
-        if (player != null && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
+        if (player == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+        // Verifica se o player está dentro da meia-lua de ataque
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= attackAngle / 2f)
         {
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (playerHealth != null && enemyHit != null)
             {
                 int damage = enemyHit.CalculateDamage();
                 playerHealth.TakeDamage(damage);
-                lastAttackTime = Time.time;
             }
         }
     }

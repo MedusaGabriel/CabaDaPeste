@@ -57,10 +57,11 @@ public class EnemyHealth : MonoBehaviour
             if (currentHealth > 0)
             {
                 enemyAnimator.SetTrigger("GetHit");
+                
             }
             else
             {
-                enemyAnimator.SetTrigger("Dead");
+                enemyAnimator.SetBool("IsDead", true);
                 var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
                 if (agent != null) agent.enabled = false;
 
