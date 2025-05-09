@@ -15,7 +15,7 @@ public class PlayerStatus : MonoBehaviour
 
     [Header("Dash")]
     
-    public float dashSpeed = 20f;
+    public float dashDistance = 8f;
     public float dashTime = 0.25f;
     public float dashCooldown = 2f;
 

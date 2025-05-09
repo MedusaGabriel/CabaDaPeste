@@ -21,12 +21,16 @@ public class PlayerDash : MonoBehaviour
     private PlayerAttackMelee _playerAttackMelee;
     private PlayerTarget _playerTarget;
     private PlayerStatus playerStatus;
+    private PlayerController _playerController;
+    private Vector3 dashDirection;
+    private float dashSpeed;
 
 
     void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
         _rigidbody = GetComponent<Rigidbody>();
+        _playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
 
         _playerAttackMelee = GetComponent<PlayerAttackMelee>();
@@ -87,23 +91,48 @@ public class PlayerDash : MonoBehaviour
         cooldownSlider.gameObject.SetActive(true);
         cooldownSlider.value = 0f;
 
+        if (_playerController != null)
+            _playerController.enabled = false;
+
         float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
-        Vector3 dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
+        dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
+        float dashDistance = playerStatus.dashDistance * dashValue;
+        float dashTime = playerStatus.dashTime;
 
-        float startTime = Time.time;
-        while (Time.time < startTime + playerStatus.dashTime)
+        Vector3 start = transform.position;
+        Vector3 end = start + dashDirection * dashDistance;
+
+        float elapsed = 0f;
+        bool originalGravity = _rigidbody.useGravity;
+        _rigidbody.useGravity = false;
+
+        while (elapsed < dashTime)
         {
-            _rigidbody.linearVelocity = dashDirection * playerStatus.dashSpeed * dashValue;
+            float t = elapsed / dashTime;
+            _rigidbody.MovePosition(Vector3.Lerp(start, end, t));
+            elapsed += Time.deltaTime;
             yield return null;
         }
+        _rigidbody.MovePosition(end);
 
-        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.useGravity = originalGravity;
+
         isDashing = false;
     }
 
+    public void ApplyDashImpulse()
+    {
+        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.AddForce(dashDirection * dashSpeed, ForceMode.VelocityChange);
+    }
+    public void EnablePlayerController()
+    {
+        if (_playerController != null)
+            _playerController.enabled = true;
+    }
     void UpdateCooldownUI()
     {
         if (cooldownSlider == null) return;
