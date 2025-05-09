@@ -14,9 +14,6 @@ public class EnemyController : MonoBehaviour
     private bool isAttacking = false;
     private bool canCombo = true;
     private bool isHit = false;
-
-    [Header("Ataque")]
-    public float attackAngle = 90f;
     private EnemyStatus enemyStatus;
 
     void Start()
@@ -99,7 +96,7 @@ public class EnemyController : MonoBehaviour
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
 
-        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= attackAngle / 2f)
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
         {
             agent.isStopped = true;
 
@@ -131,14 +128,14 @@ public class EnemyController : MonoBehaviour
 
             // Desenha linhas para mostrar o cone
             int segments = 30;
-            float halfAngle = attackAngle / 2f;
+            float halfAngle = enemyStatus.attackAngle / 2f;
             float radius = enemyStatus.attackRange;
             Vector3 forward = transform.forward;
 
             Vector3 prevPoint = center + Quaternion.Euler(0, -halfAngle, 0) * forward * radius;
             for (int i = 1; i <= segments; i++)
             {
-                float angle = -halfAngle + (attackAngle * i / segments);
+                float angle = -halfAngle + (enemyStatus.attackAngle * i / segments);
                 Vector3 nextPoint = center + Quaternion.Euler(0, angle, 0) * forward * radius;
                 Gizmos.DrawLine(prevPoint, nextPoint);
                 Gizmos.DrawLine(center, nextPoint);
@@ -168,7 +165,7 @@ public class EnemyController : MonoBehaviour
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
 
         // Verifica se o player está dentro da meia-lua de ataque
-        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= attackAngle / 2f)
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
         {
             PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (playerHealth != null && enemyHit != null)
