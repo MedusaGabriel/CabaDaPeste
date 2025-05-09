@@ -24,6 +24,9 @@ public class PlayerController : MonoBehaviour
     private PlayerInputSystem _input;
     private PlayerAttackMelee _playerAttack;
     private PlayerStatus playerStatus;
+    private PlayerAudioManager _audioManager;
+    private bool wasWalking = false;
+    private bool wasRunning = false;
 
     private void Start()
     {
@@ -34,6 +37,7 @@ public class PlayerController : MonoBehaviour
 
         _input = GetComponent<PlayerInputSystem>();
 
+        _audioManager = GetComponent<PlayerAudioManager>();
         _playerAttack = GetComponent<PlayerAttackMelee>();
         playerStatus = GetComponent<PlayerStatus>();
         Physics.IgnoreLayerCollision(
@@ -83,8 +87,54 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         Move();
+        HandleFootstepAudio();
     }
+    private void HandleFootstepAudio()
+    {
+        Vector2 input = _input.move;
+        float moveX = input.x;
+        float moveZ = input.y;
+        bool isSprinting = _input.sprint;
+        bool isMoving = (moveX != 0 || moveZ != 0);
 
+        if (_audioManager == null) return;
+
+        if (isMoving && !isSprinting)
+        {
+            if (!wasWalking)
+            {
+                _audioManager.PlayWalkLoop();
+                wasWalking = true;
+                wasRunning = false;
+            }
+        }
+        else
+        {
+            if (wasWalking)
+            {
+                _audioManager.StopWalkLoop();
+                wasWalking = false;
+            }
+        }
+
+        if (isMoving && isSprinting)
+        {
+            if (!wasRunning)
+            {
+                _audioManager.PlayRunLoop();
+                wasRunning = true;
+                wasWalking = false;
+            }
+        }
+        else
+        {
+            if (wasRunning)
+            {
+                _audioManager.StopRunLoop();
+                wasRunning = false;
+            }
+        }
+    }
     private void Move()
     {
         if (_playerAttack != null && _playerAttack.IsAttacking)

@@ -93,11 +93,11 @@ public class PlayerLevelUp : MonoBehaviour
             $"XP para o próximo level: {xpToNextLevel - currentXP}\n" +
             $"Vida curada para {playerStatus.currentHealth}"
         );
-        // if (level % 3 == 0)
-        // {
+        if (level % 3 == 0)
+        {
             Time.timeScale = 0f;
             upgradePanel.SetActive(true);
-        // }
+        }
     }
 
     private int CalculateXPForNextLevel(int currentLevel, int previousXP)
