@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     private bool wasWalking = false;
     private bool wasRunning = false;
 
+    private Vector3 _lastPosition;
+
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -36,6 +38,7 @@ public class PlayerController : MonoBehaviour
         AssignAnimationIDs();
 
         _input = GetComponent<PlayerInputSystem>();
+        _lastPosition = transform.position;
 
         _audioManager = GetComponent<PlayerAudioManager>();
         _playerAttack = GetComponent<PlayerAttackMelee>();
@@ -59,31 +62,6 @@ public class PlayerController : MonoBehaviour
         _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
     }
 
-    private void Rotate()
-    {
-
-        if (_playerAttack != null && _playerAttack.IsAttacking)
-        {
-            return;
-        }
-        Vector2 input = _input.move;
-        float moveX = input.x;
-        float moveZ = input.y;
-
-        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
-        if (rawDirection != Vector3.zero)
-        {
-            _targetRotation = Mathf.Atan2(rawDirection.x, rawDirection.z) * Mathf.Rad2Deg;
-            float rotation = Mathf.SmoothDampAngle(
-                transform.eulerAngles.y,
-                _targetRotation,
-                ref _rotationVelocity,
-                RotationSmoothTime
-            );
-            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
-        }
-    }
-
     private void FixedUpdate()
     {
         Move();
@@ -91,15 +69,16 @@ public class PlayerController : MonoBehaviour
     }
     private void HandleFootstepAudio()
     {
-        Vector2 input = _input.move;
-        float moveX = input.x;
-        float moveZ = input.y;
         bool isSprinting = _input.sprint;
-        bool isMoving = (moveX != 0 || moveZ != 0);
+        Vector2 input = _input.move;
+        bool isInputPressed = input.x != 0 || input.y != 0;
+
+        // Verifica se a posição mudou significativamente
+        bool isActuallyMoving = Vector3.Distance(transform.position, _lastPosition) > 0.01f && isInputPressed;
 
         if (_audioManager == null) return;
 
-        if (isMoving && !isSprinting)
+        if (isActuallyMoving && !isSprinting)
         {
             if (!wasWalking)
             {
@@ -117,7 +96,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (isMoving && isSprinting)
+        if (isActuallyMoving && isSprinting)
         {
             if (!wasRunning)
             {
@@ -134,11 +113,14 @@ public class PlayerController : MonoBehaviour
                 wasRunning = false;
             }
         }
+
+        _lastPosition = transform.position;
     }
     private void Move()
     {
-        if (_playerAttack != null && _playerAttack.IsAttacking)
+        if (_playerAttack != null && !_playerAttack.CanMove)
         {
+            _rigidbody.linearVelocity = Vector3.zero;
             return;
         }
 
@@ -173,4 +155,31 @@ public class PlayerController : MonoBehaviour
             _animator.SetFloat(_animIDMotionSpeed, motionMagnitude);
         }
     }
+
+    private void Rotate()
+    {
+
+        if (_playerAttack != null && !_playerAttack.CanMove)
+        {
+            return;
+        }
+        Vector2 input = _input.move;
+        float moveX = input.x;
+        float moveZ = input.y;
+
+        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
+        if (rawDirection != Vector3.zero)
+        {
+            _targetRotation = Mathf.Atan2(rawDirection.x, rawDirection.z) * Mathf.Rad2Deg;
+            float rotation = Mathf.SmoothDampAngle(
+                transform.eulerAngles.y,
+                _targetRotation,
+                ref _rotationVelocity,
+                RotationSmoothTime
+            );
+            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+        }
+    }
+
+
 }

@@ -70,6 +70,14 @@ public class PlayerAttackMelee : MonoBehaviour
             }
         }
     }
+    public void PlayAttackSound()
+    {
+        var audioManager = GetComponent<PlayerAudioManager>();
+        if (audioManager != null)
+        {
+            audioManager.PlayAttack();
+        }
+    }
 
     private void PerformComboAttack()
     {

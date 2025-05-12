@@ -64,7 +64,6 @@ public class PlayerAudioManager : MonoBehaviour
             audioSource.Stop();
     }
 
-    // Para sons únicos (ataque, dash, morte) mantenha PlayOneShot:
     public void PlayAttack()
     {
         audioSource.pitch = attackPitch;
