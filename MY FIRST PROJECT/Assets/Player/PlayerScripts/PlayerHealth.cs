@@ -54,6 +54,7 @@ public class PlayerHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
+            
             Die();
         }
     }
@@ -102,6 +103,7 @@ public class PlayerHealth : MonoBehaviour
         Debug.Log("Player morreu!");
         gameOverCanvas.SetActive(true);
         playerAnimator.SetTrigger("Death");
+        playerAnimator.SetBool("IsDead", true);
         StartCoroutine(PauseGameAfterDelay(2f));
     }
 

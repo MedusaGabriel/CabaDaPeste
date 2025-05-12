@@ -15,6 +15,8 @@ public class EnemyController : MonoBehaviour
     private bool canCombo = true;
     private bool isHit = false;
     private EnemyStatus enemyStatus;
+    private EnemyAudioManager _audioManager;
+    private bool wasRunning = false;
 
     void Start()
     {
@@ -43,6 +45,7 @@ public class EnemyController : MonoBehaviour
 
         animator = GetComponent<Animator>();
         enemyHit = GetComponent<EnemyHit>();
+        _audioManager = GetComponent<EnemyAudioManager>();
     }
     public void HandleHitReaction()
     {
@@ -55,7 +58,6 @@ public class EnemyController : MonoBehaviour
     }
     public void OnHitAnimationStart()
     {
-        Debug.Log("OnHitAnimationStart chamado");
         isHit = true;
         if (agent != null && agent.enabled)
         {
@@ -67,7 +69,6 @@ public class EnemyController : MonoBehaviour
 
     public void OnHitAnimationEnd()
     {
-        Debug.Log("OnHitAnimationEnd chamado");
         isHit = false;
         if (agent != null && agent.enabled)
         {
@@ -117,6 +118,30 @@ public class EnemyController : MonoBehaviour
             agent.isStopped = false;
             agent.SetDestination(player.position);
         }
+        HandleRunAudio();
+    }
+    private void HandleRunAudio()
+    {
+        if (_audioManager == null || agent == null) return;
+
+        bool isMoving = agent.velocity.magnitude > 0.1f && !isHit && !isAttacking && agent.enabled && !agent.isStopped;
+
+        if (isMoving)
+        {
+            if (!wasRunning)
+            {
+                _audioManager.PlayRunLoop();
+                wasRunning = true;
+            }
+        }
+        else
+        {
+            if (wasRunning)
+            {
+                _audioManager.StopRunLoop();
+                wasRunning = false;
+            }
+        }
     }
 
     private void OnDrawGizmosSelected()
@@ -151,7 +176,6 @@ public class EnemyController : MonoBehaviour
 
     void ResetAttack()
     {
-        Debug.Log("Resetando ataque");
         isAttacking = false;
         canCombo = true;
 
