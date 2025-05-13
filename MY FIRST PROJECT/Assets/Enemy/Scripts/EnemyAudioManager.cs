@@ -19,7 +19,8 @@ public class EnemyAudioManager : MonoBehaviour
 
     [Header("Pitch Individual")]
     [Range(0.5f, 2f)] public float runPitch = 1f;
-    [Range(0.5f, 2f)] public float attackPitch = 1f;
+    [Range(0.5f, 2f)] public float attackPitchMin = 0.8f;
+    [Range(0.5f, 2f)] public float attackPitchMax = 1.2f;
     [Range(0.5f, 2f)] public float dashPitch = 1f;
     [Range(0.5f, 2f)] public float deathPitch = 1f;
 
@@ -46,7 +47,8 @@ public class EnemyAudioManager : MonoBehaviour
 
     public void PlayAttack()
     {
-        audioSource.pitch = attackPitch;
+        float randomPitch = Random.Range(attackPitchMin, attackPitchMax);
+        audioSource.pitch = randomPitch;
         audioSource.PlayOneShot(attackClip, attackVolume * masterVolume);
         StartCoroutine(NotifyAttackSoundEnd(attackClip.length));
     }
