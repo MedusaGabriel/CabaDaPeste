@@ -4,22 +4,19 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
-    // public float speed = 3f;
-    // public float angularSpeed = 0f;
-    // public float acceleration = 10f;
-    // public float attackCooldown = 1.5f;
-    // public float attackRange = 2f;
     public bool canChasePlayer = true;
-
     private float lastAttackTime = 0f;
     private Transform player;
     private NavMeshAgent agent;
     private Animator animator;
     private EnemyHit enemyHit;
-    private bool isHit = false;
     private float storedAngularSpeed;
-
+    private bool isAttacking = false;
+    private bool canCombo = true;
+    private bool isHit = false;
     private EnemyStatus enemyStatus;
+    private EnemyAudioManager _audioManager;
+    private bool wasRunning = false;
 
     void Start()
     {
@@ -48,6 +45,7 @@ public class EnemyController : MonoBehaviour
 
         animator = GetComponent<Animator>();
         enemyHit = GetComponent<EnemyHit>();
+        _audioManager = GetComponent<EnemyAudioManager>();
     }
     public void HandleHitReaction()
     {
@@ -61,67 +59,143 @@ public class EnemyController : MonoBehaviour
     public void OnHitAnimationStart()
     {
         isHit = true;
-        if (agent != null & agent.enabled)
+        if (agent != null && agent.enabled)
         {
             storedAngularSpeed = agent.angularSpeed;
             agent.isStopped = true;
-            agent.angularSpeed = 0f;
+            agent.updateRotation = false;
         }
     }
+
     public void OnHitAnimationEnd()
     {
         isHit = false;
-        if (agent != null & agent.enabled)
+        if (agent != null && agent.enabled)
         {
-            agent.isStopped = false;
             agent.angularSpeed = storedAngularSpeed;
+            agent.isStopped = false;
+            agent.updateRotation = true;
         }
+        ResetAttack();
     }
     void Update()
     {
-        if (agent != null && agent.enabled)
+        if (agent == null || !agent.enabled)
+            return;
+
+        animator.SetFloat("Move", agent.velocity.magnitude / enemyStatus.speed);
+
+        if (isHit || !canChasePlayer || player == null)
         {
-            if (player != null && !isHit && canChasePlayer)
+            agent.isStopped = true;
+            return;
+        }
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+        // Verifica se o player está dentro do cone de ataque
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
+        {
+            agent.isStopped = true;
+
+            if (!isAttacking && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
             {
-                float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-                if (distanceToPlayer <= enemyStatus.attackRange)
-                {
-                    if (!animator.GetBool("IsAttacking"))
-                        animator.SetBool("IsAttacking", true);
-
-                    agent.isStopped = true;
-                    TryDealDamage(player.gameObject);
-                }
-                else
-                {
-                    if (animator.GetBool("IsAttacking"))
-                        animator.SetBool("IsAttacking", false);
-
-                    agent.isStopped = false;
-                    agent.SetDestination(player.position);
-                }
+                animator.SetTrigger("Attack");
+                isAttacking = true;
+                lastAttackTime = Time.time;
             }
-            else
+            else if (canCombo && distanceToPlayer <= enemyStatus.attackRange)
             {
-                if (animator.GetBool("IsAttacking"))
-                    animator.SetBool("IsAttacking", false);
+                animator.SetTrigger("ComboAttack");
+                canCombo = false;
+            }
+        }
+        else
+        {
+            agent.isStopped = false;
+            agent.SetDestination(player.position);
+        }
+        HandleRunAudio();
+    }
+    private void HandleRunAudio()
+    {
+        if (_audioManager == null || agent == null) return;
 
-                agent.isStopped = true; // Para o agente
+        bool isMoving = agent.velocity.magnitude > 0.1f && !isHit && !isAttacking && agent.enabled && !agent.isStopped;
+
+        if (isMoving)
+        {
+            if (!wasRunning)
+            {
+                _audioManager.PlayRunLoop();
+                wasRunning = true;
+            }
+        }
+        else
+        {
+            if (wasRunning)
+            {
+                _audioManager.StopRunLoop();
+                wasRunning = false;
             }
         }
     }
 
-    private void TryDealDamage(GameObject playerObj)
+    private void OnDrawGizmosSelected()
     {
-        if (Time.time >= lastAttackTime + enemyStatus.attackCooldown)
+        if (enemyStatus != null)
         {
-            PlayerHealth playerHealth = playerObj.GetComponent<PlayerHealth>();
+            Gizmos.color = Color.red;
+            Vector3 center = transform.position + Vector3.up * (enemyStatus.height / 2f);
+
+            // Desenha linhas para mostrar o cone
+            int segments = 30;
+            float halfAngle = enemyStatus.attackAngle / 2f;
+            float radius = enemyStatus.attackRange;
+            Vector3 forward = transform.forward;
+
+            Vector3 prevPoint = center + Quaternion.Euler(0, -halfAngle, 0) * forward * radius;
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = -halfAngle + (enemyStatus.attackAngle * i / segments);
+                Vector3 nextPoint = center + Quaternion.Euler(0, angle, 0) * forward * radius;
+                Gizmos.DrawLine(prevPoint, nextPoint);
+                Gizmos.DrawLine(center, nextPoint);
+                prevPoint = nextPoint;
+            }
+        }
+    }
+
+    void EnableCombo()
+    {
+        canCombo = true;
+    }
+
+    void ResetAttack()
+    {
+        isAttacking = false;
+        canCombo = true;
+
+    }
+    public void DealDamage()
+    {
+        if (player == null) return;
+
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        Vector3 directionToPlayer = (player.position - transform.position).normalized;
+        float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
+
+        // Verifica se o player está dentro da meia-lua de ataque
+        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
+        {
+            PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
             if (playerHealth != null && enemyHit != null)
             {
                 int damage = enemyHit.CalculateDamage();
                 playerHealth.TakeDamage(damage);
-                lastAttackTime = Time.time;
             }
         }
     }
@@ -151,10 +225,6 @@ public class EnemyController : MonoBehaviour
         {
             transform.position = Vector3.Lerp(startPosition, targetPosition, elapsedTime / knockbackDuration);
 
-            // if (NavMesh.SamplePosition(nextPosition, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
-            // {
-            //     transform.position = hit.position;
-            // }
             elapsedTime += Time.deltaTime;
             yield return null;
         }

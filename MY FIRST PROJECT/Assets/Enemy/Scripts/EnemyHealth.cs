@@ -13,7 +13,6 @@ public class EnemyHealth : MonoBehaviour
     public Animator enemyAnimator;
     private GameObject sliderWorldObject;
     public GameObject playerGameObject;
-
     private EnemyStatus enemyStatus;
 
     void Start()
@@ -55,13 +54,19 @@ public class EnemyHealth : MonoBehaviour
 
         if (enemyAnimator != null)
         {
-            float hitValue = currentHealth > 0 ? 0f : 1f;
-            enemyAnimator.SetFloat("Hit", hitValue);
+            if (currentHealth > 0)
+            {
+                enemyAnimator.SetTrigger("GetHit");
+                
+            }
+            else
+            {
+                enemyAnimator.ResetTrigger("GetHit");
+                enemyAnimator.SetBool("IsDead", true);
+                var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+                if (agent != null) agent.enabled = false;
 
-            enemyAnimator.ResetTrigger("Attack");
-            enemyAnimator.ResetTrigger("Move");
-
-            enemyAnimator.SetTrigger("GetHit");
+            }
         }
 
         EnemyController controller = GetComponent<EnemyController>();
@@ -86,6 +91,7 @@ public class EnemyHealth : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         GetComponent<ExpDrop>().DropXP(playerGameObject);
+        GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
         Destroy(gameObject);
     }
 
