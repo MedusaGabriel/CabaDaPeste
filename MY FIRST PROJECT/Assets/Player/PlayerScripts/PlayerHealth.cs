@@ -12,6 +12,7 @@ public class PlayerHealth : MonoBehaviour
     private PlayerStatus playerStatus;
     public Animator playerAnimator;
     private bool isDead = false;
+    public CanvasPopUp canvasPopUp;
 
 
     [Header("Health UI")]
@@ -43,6 +44,14 @@ public class PlayerHealth : MonoBehaviour
     {
         UpdateHealthUI();
         FaceSliderToCamera();
+
+        // TESTE: Toma dano aleatório ao apertar F5
+        if (Input.GetKeyDown(KeyCode.F5))
+        {
+            int dano = Random.Range(1, 21);
+            TakeDamage(dano);
+            Debug.Log($"Player tomou {dano} de dano (teste F5)");
+        }
     }
 
     public void TakeDamage(int damage)
@@ -52,9 +61,12 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStatus.maxHealth);
 
+        if (canvasPopUp != null)
+            canvasPopUp.ShowDamage(damage);
+
         if (currentHealth <= 0)
         {
-            
+
             Die();
         }
     }
@@ -97,7 +109,7 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        if (isDead) return; 
+        if (isDead) return;
         isDead = true;
 
         Debug.Log("Player morreu!");
