@@ -13,6 +13,7 @@ public class PlayerHealth : MonoBehaviour
     public Animator playerAnimator;
     private bool isDead = false;
     public CanvasPopUp canvasPopUp;
+    public CanvasPopUp canvasPopUpPrefab;
 
 
     [Header("Health UI")]
@@ -61,12 +62,18 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStatus.maxHealth);
 
-        if (canvasPopUp != null)
-            canvasPopUp.ShowDamage(damage);
+        // Instancia um novo pop-up de dano
+        if (canvasPopUpPrefab != null)
+        {
+            // Aqui assumimos que o prefab já está posicionado no Canvas correto.
+            // Você pode ajustar a posição se necessário, por exemplo, adicionando um offset.
+            CanvasPopUp newPopup = Instantiate(canvasPopUpPrefab, canvasPopUpPrefab.transform.parent);
+            newPopup.transform.position = transform.position + Vector3.up * 2f; // utiliza a posição do jogador
+            newPopup.ShowDamage(damage);
+        }
 
         if (currentHealth <= 0)
         {
-
             Die();
         }
     }

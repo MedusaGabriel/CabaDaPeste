@@ -30,7 +30,7 @@ public class CanvasPopUp : MonoBehaviour
             }
         }
 
-        popupText.gameObject.SetActive(false);
+        popupText.gameObject.SetActive(true);
         popupAnimator = popupText.GetComponent<Animator>();
     }
 
@@ -38,7 +38,7 @@ public class CanvasPopUp : MonoBehaviour
     {
         if (playerTransform != null)
         {
-                        transform.position = playerTransform.position + Vector3.up * verticalOffset;
+            transform.position = playerTransform.position + Vector3.up * verticalOffset;
 
             if (Camera.main != null)
             {
@@ -77,9 +77,9 @@ public class CanvasPopUp : MonoBehaviour
             yield return null;
         }
         popupText.alpha = 0f;
-        popupText.gameObject.SetActive(false);
-
         if (popupAnimator != null)
             popupAnimator.speed = 1f;
+
+        Destroy(gameObject);
     }
 }
