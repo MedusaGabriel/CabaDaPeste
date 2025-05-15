@@ -97154,7 +97154,7 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.33333334
-    functionName: EnableCollider
+    functionName: ApplyMeleeDamageON
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -97168,7 +97168,7 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 0.8333333
-    functionName: DisableCollider
+    functionName: ApplyMeleeDamageOFF
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

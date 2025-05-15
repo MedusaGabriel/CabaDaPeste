@@ -1,5 +1,6 @@
 using UnityEngine;
 using PlayerInputS;
+using Cinemachine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -12,10 +13,9 @@ public class PlayerController : MonoBehaviour
     public float SpeedChangeRate = 15.0f;
 
     private float _speed;
-    private float _targetRotation = 0.0f;
+    // private float _targetRotation = 0.0f;
     private float _rotationVelocity;
     private Vector3 _moveDirection;
-
     private Rigidbody _rigidbody;
     private Animator _animator;
     private int _animIDSpeed;
@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     private PlayerAudioManager _audioManager;
     private bool wasWalking = false;
     private bool wasRunning = false;
-
+    public CinemachineFreeLook freeLookCamera;
     private Vector3 _lastPosition;
 
     private void Start()
@@ -143,22 +143,32 @@ public class PlayerController : MonoBehaviour
             _speed = 0f;
         }
 
-        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
-        Vector3 movement = rawDirection * _speed;
+        // Direção baseada na câmera
+        Vector3 camForward = freeLookCamera.transform.forward;
+        Vector3 camRight = freeLookCamera.transform.right;
+        camForward.y = 0;
+        camRight.y = 0;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 moveDir = camForward * moveZ + camRight * moveX;
+        moveDir.Normalize();
+
+        Vector3 movement = moveDir * _speed;
 
         _rigidbody.MovePosition(_rigidbody.position + movement * Time.fixedDeltaTime);
 
         if (_hasAnimator)
         {
-            float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : rawDirection.magnitude;
+            float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : moveDir.magnitude;
             _animator.SetFloat(_animIDSpeed, _speed);
             _animator.SetFloat(_animIDMotionSpeed, motionMagnitude);
         }
     }
 
+
     private void Rotate()
     {
-
         if (_playerAttack != null && !_playerAttack.CanMove)
         {
             return;
@@ -167,19 +177,30 @@ public class PlayerController : MonoBehaviour
         float moveX = input.x;
         float moveZ = input.y;
 
-        Vector3 rawDirection = new Vector3(-moveX, 0, -moveZ).normalized;
-        if (rawDirection != Vector3.zero)
+        if (moveX != 0 || moveZ != 0)
         {
-            _targetRotation = Mathf.Atan2(rawDirection.x, rawDirection.z) * Mathf.Rad2Deg;
-            float rotation = Mathf.SmoothDampAngle(
-                transform.eulerAngles.y,
-                _targetRotation,
-                ref _rotationVelocity,
-                RotationSmoothTime
-            );
-            transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+            Vector3 camForward = freeLookCamera.transform.forward;
+            Vector3 camRight = freeLookCamera.transform.right;
+            camForward.y = 0;
+            camRight.y = 0;
+            camForward.Normalize();
+            camRight.Normalize();
+
+            Vector3 moveDir = camForward * moveZ + camRight * moveX;
+            moveDir.Normalize();
+
+            if (moveDir.sqrMagnitude > 0.0f)
+            {
+                float targetAngle = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
+                float smoothAngle = Mathf.SmoothDampAngle(
+                    transform.eulerAngles.y,
+                    targetAngle,
+                    ref _rotationVelocity,
+                    RotationSmoothTime
+                );
+                transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
+            }
         }
     }
-
 
 }

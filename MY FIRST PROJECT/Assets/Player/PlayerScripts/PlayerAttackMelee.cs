@@ -121,7 +121,7 @@ public class PlayerAttackMelee : MonoBehaviour
         CanMove = canMove;
     }
 
-    public void EnableCollider()
+    public void ApplyMeleeDamageON()
     {
         _enemiesHit.Clear();
 
@@ -158,7 +158,7 @@ public class PlayerAttackMelee : MonoBehaviour
         playerAnimator.SetBool("IsAttacking", true);
     }
 
-    public void DisableCollider()
+    public void ApplyMeleeDamageOFF()
     {
         _enemiesHit.Clear();
         playerAnimator.SetBool("IsAttacking", false);
