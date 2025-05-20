@@ -5,7 +5,8 @@ using PlayerInputS;
 public class CameraInputFollow : MonoBehaviour
 {
     public CinemachineFreeLook freeLookCamera;
-    public float cameraFollowSpeed = 2f;
+    public float playerRotateSpeed = 10f;
+    public float cameraRotateSpeed = 8f;
 
     private PlayerInputSystem _input;
     private Transform _playerTransform;
@@ -24,9 +25,18 @@ public class CameraInputFollow : MonoBehaviour
 
         if (moveInput != Vector2.zero)
         {
-            float targetAngle = _playerTransform.eulerAngles.y;
-            float currentAngle = freeLookCamera.m_XAxis.Value;
-            freeLookCamera.m_XAxis.Value = Mathf.LerpAngle(currentAngle, targetAngle, cameraFollowSpeed * Time.deltaTime);
+            float cameraY = freeLookCamera.State.RawOrientation.eulerAngles.y;
+            float playerY = _playerTransform.eulerAngles.y;
+
+            if (Mathf.Abs(Mathf.DeltaAngle(playerY, cameraY)) > 1f)
+            {
+                float newY = Mathf.LerpAngle(playerY, cameraY, playerRotateSpeed * Time.deltaTime);
+                _playerTransform.rotation = Quaternion.Euler(0, newY, 0);
+                float cameraCurrentY = freeLookCamera.m_XAxis.Value;
+                float cameraTargetY = newY;
+                float smoothCameraY = Mathf.LerpAngle(cameraCurrentY, cameraTargetY, playerRotateSpeed * Time.deltaTime);
+                freeLookCamera.m_XAxis.Value = smoothCameraY;
+            }
         }
     }
 }

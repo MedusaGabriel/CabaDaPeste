@@ -14,19 +14,14 @@ public class PlayerAttackMelee : MonoBehaviour
     public Animator playerAnimator;
 
     private bool comboQueued = false;
-    public ParticleSystem weaponEffect;
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
-
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
 
     private void Start()
     {
         playerStamina = GetComponent<PlayerStamina>();
         playerStatus = GetComponent<PlayerStatus>();
-
-        if (weaponEffect != null)
-            weaponEffect.Stop();
 
         Collider playerCollider = GetComponent<Collider>();
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -163,9 +158,6 @@ public class PlayerAttackMelee : MonoBehaviour
         _enemiesHit.Clear();
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
-
-        if (weaponEffect != null)
-            weaponEffect.Stop();
     }
     public void MovePlayerOn()
     {
@@ -209,4 +201,6 @@ public class PlayerAttackMelee : MonoBehaviour
             Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, attackAngle / 2f, 0) * forward * attackRange);
         }
     }
+
+    
 }
