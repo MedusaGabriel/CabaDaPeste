@@ -16,6 +16,9 @@ public class CanvasPopUp : MonoBehaviour
     [Range(10f, 360f)]
     public float orbitSpeed = 90f;
     [Header("Duração do Fade")]
+
+    [Header("Comportamento")]
+    public bool useOrbit = true;
     public float fadeDuration = 1.5f;
     public float animationVerticalOffset = -0.5f;
     private Vector3 startPosition;
@@ -53,14 +56,22 @@ public class CanvasPopUp : MonoBehaviour
     {
         if (playerTransform != null)
         {
-            if (!isFadingOut)
+            if (useOrbit)
             {
-                baseOrbitAngle += orbitSpeed * Time.deltaTime;
+                if (!isFadingOut)
+                {
+                    baseOrbitAngle += orbitSpeed * Time.deltaTime;
+                }
+                float rad = baseOrbitAngle * Mathf.Deg2Rad;
+                Vector3 horizontalOffset = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad)) * randomOrbitRadius;
+                startPosition = playerTransform.position + Vector3.up * (verticalOffset + animationVerticalOffset) + horizontalOffset;
+                endPosition = playerTransform.position + Vector3.up * verticalOffset + horizontalOffset;
             }
-            float rad = baseOrbitAngle * Mathf.Deg2Rad;
-            Vector3 horizontalOffset = new Vector3(Mathf.Cos(rad), 0f, Mathf.Sin(rad)) * randomOrbitRadius;
-            startPosition = playerTransform.position + Vector3.up * (verticalOffset + animationVerticalOffset) + horizontalOffset;
-            endPosition = playerTransform.position + Vector3.up * verticalOffset + horizontalOffset;
+            else
+            {
+                startPosition = playerTransform.position + Vector3.up * (verticalOffset + animationVerticalOffset);
+                endPosition = playerTransform.position + Vector3.up * verticalOffset;
+            }
             transform.position = startPosition;
 
             if (Camera.main != null)
@@ -133,5 +144,26 @@ public class CanvasPopUp : MonoBehaviour
             Gizmos.DrawLine(prevPoint, nextPoint);
             prevPoint = nextPoint;
         }
+    }
+    public void ShowCustomMessage(string message)
+    {
+        popupText.text = message;
+        popupText.gameObject.SetActive(true);
+
+        baseOrbitAngle = Random.Range(0f, 360f);
+        randomOrbitRadius = Random.Range(minOrbitRadius, maxOrbitRadius);
+
+        float currentAlpha = popupText.alpha;
+        float newFadeDuration = Mathf.Max(minFadeDuration, fadeDuration * currentAlpha);
+
+        if (popupAnimator != null)
+        {
+            popupAnimator.speed = fadeDuration / newFadeDuration;
+            popupAnimator.Play("Pop-Up", -1, 0f);
+        }
+
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeOutAndMove(newFadeDuration));
     }
 }

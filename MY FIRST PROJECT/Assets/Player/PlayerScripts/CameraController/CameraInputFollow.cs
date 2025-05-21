@@ -1,42 +1,33 @@
 using UnityEngine;
 using Cinemachine;
-using PlayerInputS;
 
-public class CameraInputFollow : MonoBehaviour
+namespace PlayerInputS
 {
-    public CinemachineFreeLook freeLookCamera;
-    public float playerRotateSpeed = 10f;
-    public float cameraRotateSpeed = 8f;
-
-    private PlayerInputSystem _input;
-    private Transform _playerTransform;
-
-    void Start()
+    public class CameraInputFollow : MonoBehaviour
     {
-        _input = GetComponent<PlayerInputSystem>();
-        _playerTransform = transform;
-    }
+        [Header("Referências")]
+        [SerializeField] private CinemachineVirtualCamera virtualCamera;
 
-    void Update()
-    {
-        if (freeLookCamera == null || _input == null) return;
-
-        Vector2 moveInput = _input.move;
-
-        if (moveInput != Vector2.zero)
+        public Vector3 GetCameraRelativeDirection(Vector2 input)
         {
-            float cameraY = freeLookCamera.State.RawOrientation.eulerAngles.y;
-            float playerY = _playerTransform.eulerAngles.y;
-
-            if (Mathf.Abs(Mathf.DeltaAngle(playerY, cameraY)) > 1f)
+            if (virtualCamera == null)
             {
-                float newY = Mathf.LerpAngle(playerY, cameraY, playerRotateSpeed * Time.deltaTime);
-                _playerTransform.rotation = Quaternion.Euler(0, newY, 0);
-                float cameraCurrentY = freeLookCamera.m_XAxis.Value;
-                float cameraTargetY = newY;
-                float smoothCameraY = Mathf.LerpAngle(cameraCurrentY, cameraTargetY, playerRotateSpeed * Time.deltaTime);
-                freeLookCamera.m_XAxis.Value = smoothCameraY;
+                Debug.LogWarning("VirtualCamera não atribuída!");
+                return Vector3.zero;
             }
+
+            Transform camTransform = virtualCamera.transform;
+
+            Vector3 camForward = camTransform.forward;
+            camForward.y = 0;
+            camForward.Normalize();
+
+            Vector3 camRight = camTransform.right;
+            camRight.y = 0;
+            camRight.Normalize();
+
+            Vector3 moveDir = (camForward * input.y + camRight * input.x).normalized;
+            return moveDir;
         }
     }
 }

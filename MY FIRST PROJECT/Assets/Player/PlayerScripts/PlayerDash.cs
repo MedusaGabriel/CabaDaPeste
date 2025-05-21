@@ -24,11 +24,14 @@ public class PlayerDash : MonoBehaviour
     private PlayerController _playerController;
     private Vector3 dashDirection;
     private float dashSpeed;
+    private PlayerStamina playerStamina;
+
 
 
     void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
+        playerStamina = GetComponent<PlayerStamina>();
         _rigidbody = GetComponent<Rigidbody>();
         _playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
@@ -81,7 +84,14 @@ public class PlayerDash : MonoBehaviour
     {
         if (!isDashing && Time.time > lastDashTime + playerStatus.dashCooldown)
         {
-            StartCoroutine(DashRoutine());
+            if (playerStamina != null && playerStamina.TryConsumeStamina())
+            {
+                StartCoroutine(DashRoutine());
+            }
+            else
+            {
+                Debug.Log("Sem stamina para dash!");
+            }
         }
     }
     IEnumerator DashRoutine()

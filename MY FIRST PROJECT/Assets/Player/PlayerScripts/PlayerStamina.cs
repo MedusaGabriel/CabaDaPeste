@@ -3,17 +3,16 @@ using UnityEngine.UI;
 
 public class PlayerStamina : MonoBehaviour
 {
-    public int maxStamina = 5;
-    public float recoveryTime = 0.5f;
     private int currentStamina;
     private float timer;
     public int CurrentStamina => currentStamina;
 
     public Slider staminaSlider;
     public Vector3 sliderOffset = new Vector3(0, 2f, 0);
-    public GameObject noStaminaPrefab;
     private GameObject sliderWorldObject;
     private PlayerStatus playerStatus;
+    public CanvasPopUp noStaminaPrefab;
+    private CanvasPopUp currentPopup;
 
 
     void Start()
@@ -59,7 +58,7 @@ public class PlayerStamina : MonoBehaviour
             currentStamina -= amount;
             return true;
         }
-        ShowNoStaminaMessage(); 
+        ShowNoStaminaMessage();
         return false;
 
     }
@@ -99,8 +98,20 @@ public class PlayerStamina : MonoBehaviour
     }
     private void ShowNoStaminaMessage()
     {
-        Vector3 spawnPosition = transform.position + Vector3.up * 1.5f;
-        GameObject textObj = Instantiate(noStaminaPrefab, spawnPosition, Quaternion.identity);
-        Destroy(textObj, 1.5f);
+        if (noStaminaPrefab != null)
+        {
+            if (currentPopup != null)
+            {
+                Destroy(currentPopup.gameObject);
+            }
+
+            CanvasPopUp newPopup = Instantiate(noStaminaPrefab, noStaminaPrefab.transform.parent);
+            newPopup.transform.position = transform.position + Vector3.up * 2f;
+            newPopup.useOrbit = false; 
+            string mensagem = "<b><size=50><color=#FFD700>Sem Stamina!</color></size></b>";
+            newPopup.ShowCustomMessage(mensagem);
+
+            currentPopup = newPopup;
+        }
     }
 }

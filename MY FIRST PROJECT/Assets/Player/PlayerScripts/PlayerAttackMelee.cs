@@ -17,11 +17,13 @@ public class PlayerAttackMelee : MonoBehaviour
     public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
+    private Rigidbody rb;
 
     private void Start()
     {
         playerStamina = GetComponent<PlayerStamina>();
         playerStatus = GetComponent<PlayerStatus>();
+        rb = GetComponent<Rigidbody>();
 
         Collider playerCollider = GetComponent<Collider>();
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -35,6 +37,8 @@ public class PlayerAttackMelee : MonoBehaviour
 
     void Update()
     {
+        Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        bool isMoving = rb.linearVelocity.magnitude > 0.1f;
         if (Input.GetMouseButtonDown(0))
         {
             if (!IsAttacking && playerStamina.TryConsumeStamina())
@@ -202,5 +206,5 @@ public class PlayerAttackMelee : MonoBehaviour
         }
     }
 
-    
+
 }

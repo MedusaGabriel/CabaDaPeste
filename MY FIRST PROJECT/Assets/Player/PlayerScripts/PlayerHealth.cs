@@ -62,13 +62,10 @@ public class PlayerHealth : MonoBehaviour
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, playerStatus.maxHealth);
 
-        // Instancia um novo pop-up de dano
         if (canvasPopUpPrefab != null)
         {
-            // Aqui assumimos que o prefab já está posicionado no Canvas correto.
-            // Você pode ajustar a posição se necessário, por exemplo, adicionando um offset.
             CanvasPopUp newPopup = Instantiate(canvasPopUpPrefab, canvasPopUpPrefab.transform.parent);
-            newPopup.transform.position = transform.position + Vector3.up * 2f; // utiliza a posição do jogador
+            newPopup.transform.position = transform.position + Vector3.up * 2f; 
             newPopup.ShowDamage(damage);
         }
 

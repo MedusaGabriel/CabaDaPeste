@@ -1,88 +1,123 @@
 using UnityEngine;
 using PlayerInputS;
-using Cinemachine;
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem;
-#endif
-[RequireComponent(typeof(Rigidbody))]
+
 public class PlayerController : MonoBehaviour
 {
-    /// testando fds
-    [Header("Player Movement")]
-    public float RotationSmoothTime = 0.1f;
-    public float SpeedChangeRate = 15.0f;
+    [Header("Referências")]
+    [SerializeField] private CameraInputFollow cameraInputFollow;
+    [SerializeField] private Animator anim;
+    [SerializeField] private PlayerStatus playerStatus;
+    [SerializeField] private PlayerAudioManager audioManager;
 
-    private float _speed;
-    // private float _targetRotation = 0.0f;
-    private float _rotationVelocity;
-    private Vector3 _moveDirection;
-    private Rigidbody _rigidbody;
-    private Animator _animator;
-    private int _animIDSpeed;
-    private int _animIDMotionSpeed;
-    private bool _hasAnimator;
-    private PlayerInputSystem _input;
-    private PlayerAttackMelee _playerAttack;
-    private PlayerStatus playerStatus;
-    private PlayerAudioManager _audioManager;
+    private Rigidbody rb;
+    private Vector3 moveDirection;
     private bool wasWalking = false;
     private bool wasRunning = false;
-    public CinemachineFreeLook freeLookCamera;
-    private Vector3 _lastPosition;
+    private Vector3 lastPosition;
+    private PlayerAttackMelee playerAttack;
 
-    private void Start()
+
+    private void Awake()
     {
-        _rigidbody = GetComponent<Rigidbody>();
-
-        _hasAnimator = TryGetComponent(out _animator);
-        AssignAnimationIDs();
-
-        _input = GetComponent<PlayerInputSystem>();
-        _lastPosition = transform.position;
-
-        _audioManager = GetComponent<PlayerAudioManager>();
-        _playerAttack = GetComponent<PlayerAttackMelee>();
-        playerStatus = GetComponent<PlayerStatus>();
-        Physics.IgnoreLayerCollision(
-        LayerMask.NameToLayer("Player"),
-        LayerMask.NameToLayer("Enemy"),
-        false
-    );
-
+        rb = GetComponent<Rigidbody>();
+        lastPosition = transform.position;
+        playerAttack = GetComponent<PlayerAttackMelee>();
     }
 
     private void Update()
     {
-        Rotate();
+        Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+        moveDirection = cameraInputFollow.GetCameraRelativeDirection(input);
+
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        float targetSpeed = isRunning ? playerStatus.sprintSpeed : playerStatus.moveSpeed;
+
+        if (anim != null)
+        {
+            float animSpeed = 0f;
+            if (input.magnitude == 0)
+                animSpeed = 0f;
+            else if (isRunning)
+                animSpeed = playerStatus.sprintSpeed;
+            else
+                animSpeed = playerStatus.moveSpeed;
+
+            anim.SetFloat("Speed", animSpeed);
+        }
+
+        currentSpeed = targetSpeed;
     }
 
-    private void AssignAnimationIDs()
-    {
-        _animIDSpeed = Animator.StringToHash("Speed");
-        _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
-    }
+    private float currentSpeed = 0f;
 
     private void FixedUpdate()
     {
-        Move();
+        if (playerAttack != null && !playerAttack.CanMove)
+        {
+            rb.linearVelocity = Vector3.zero;
+            if (wasWalking && audioManager != null)
+            {
+                audioManager.StopWalkLoop();
+                wasWalking = false;
+            }
+            if (wasRunning && audioManager != null)
+            {
+                audioManager.StopRunLoop();
+                wasRunning = false;
+            }
+            return;
+        }
+        MovePlayer();
+        RotatePlayer(moveDirection);
         HandleFootstepAudio();
     }
+
+    private void MovePlayer()
+    {
+        Vector3 velocity = moveDirection * currentSpeed;
+        velocity.y = rb.linearVelocity.y;
+        rb.linearVelocity = velocity;
+    }
+
+    private void RotatePlayer(Vector3 direction)
+    {
+        if (direction == Vector3.zero) return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+    }
+
     private void HandleFootstepAudio()
     {
-        bool isSprinting = _input.sprint;
-        Vector2 input = _input.move;
+        if (playerAttack != null && !playerAttack.CanMove)
+        {
+            if (wasWalking)
+            {
+                audioManager.StopWalkLoop();
+                wasWalking = false;
+            }
+            if (wasRunning)
+            {
+                audioManager.StopRunLoop();
+                wasRunning = false;
+            }
+            return;
+        }
+
+        if (audioManager == null) return;
+
+        bool isRunning = Input.GetKey(KeyCode.LeftShift);
+        Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         bool isInputPressed = input.x != 0 || input.y != 0;
 
         // Verifica se a posição mudou significativamente
-        bool isActuallyMoving = Vector3.Distance(transform.position, _lastPosition) > 0.01f && isInputPressed;
+        bool isActuallyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f && isInputPressed;
 
-        if (_audioManager == null) return;
-
-        if (isActuallyMoving && !isSprinting)
+        if (isActuallyMoving && !isRunning)
         {
             if (!wasWalking)
             {
-                _audioManager.PlayWalkLoop();
+                audioManager.PlayWalkLoop();
                 wasWalking = true;
                 wasRunning = false;
             }
@@ -91,16 +126,16 @@ public class PlayerController : MonoBehaviour
         {
             if (wasWalking)
             {
-                _audioManager.StopWalkLoop();
+                audioManager.StopWalkLoop();
                 wasWalking = false;
             }
         }
 
-        if (isActuallyMoving && isSprinting)
+        if (isActuallyMoving && isRunning)
         {
             if (!wasRunning)
             {
-                _audioManager.PlayRunLoop();
+                audioManager.PlayRunLoop();
                 wasRunning = true;
                 wasWalking = false;
             }
@@ -109,98 +144,11 @@ public class PlayerController : MonoBehaviour
         {
             if (wasRunning)
             {
-                _audioManager.StopRunLoop();
+                audioManager.StopRunLoop();
                 wasRunning = false;
             }
         }
 
-        _lastPosition = transform.position;
+        lastPosition = transform.position;
     }
-    private void Move()
-    {
-        if (_playerAttack != null && !_playerAttack.CanMove)
-        {
-            _rigidbody.linearVelocity = Vector3.zero;
-            return;
-        }
-
-        Vector2 input = _input.move;
-        float moveX = input.x;
-        float moveZ = input.y;
-
-        bool isSprinting = _input.sprint;
-        float targetSpeed = isSprinting ? playerStatus.sprintSpeed : playerStatus.moveSpeed;
-        if (moveX == 0 && moveZ == 0)
-        {
-            targetSpeed = 0.0f;
-            _input.SprintInput(false);
-        }
-
-        _speed = Mathf.Lerp(_speed, targetSpeed, Time.fixedDeltaTime * SpeedChangeRate);
-
-        if (targetSpeed == 0f && _speed < 0.01f)
-        {
-            _speed = 0f;
-        }
-
-        // Direção baseada na câmera
-        Vector3 camForward = freeLookCamera.transform.forward;
-        Vector3 camRight = freeLookCamera.transform.right;
-        camForward.y = 0;
-        camRight.y = 0;
-        camForward.Normalize();
-        camRight.Normalize();
-
-        Vector3 moveDir = camForward * moveZ + camRight * moveX;
-        moveDir.Normalize();
-
-        Vector3 movement = moveDir * _speed;
-
-        _rigidbody.MovePosition(_rigidbody.position + movement * Time.fixedDeltaTime);
-
-        if (_hasAnimator)
-        {
-            float motionMagnitude = (moveX == 0 && moveZ == 0) ? 0f : moveDir.magnitude;
-            _animator.SetFloat(_animIDSpeed, _speed);
-            _animator.SetFloat(_animIDMotionSpeed, motionMagnitude);
-        }
-    }
-
-
-    private void Rotate()
-    {
-        if (_playerAttack != null && !_playerAttack.CanMove)
-        {
-            return;
-        }
-        Vector2 input = _input.move;
-        float moveX = input.x;
-        float moveZ = input.y;
-
-        if (moveX != 0 || moveZ != 0)
-        {
-            Vector3 camForward = freeLookCamera.transform.forward;
-            Vector3 camRight = freeLookCamera.transform.right;
-            camForward.y = 0;
-            camRight.y = 0;
-            camForward.Normalize();
-            camRight.Normalize();
-
-            Vector3 moveDir = camForward * moveZ + camRight * moveX;
-            moveDir.Normalize();
-
-            if (moveDir.sqrMagnitude > 0.0f)
-            {
-                float targetAngle = Mathf.Atan2(moveDir.x, moveDir.z) * Mathf.Rad2Deg;
-                float smoothAngle = Mathf.SmoothDampAngle(
-                    transform.eulerAngles.y,
-                    targetAngle,
-                    ref _rotationVelocity,
-                    RotationSmoothTime
-                );
-                transform.rotation = Quaternion.Euler(0.0f, smoothAngle, 0.0f);
-            }
-        }
-    }
-
 }
