@@ -16,7 +16,6 @@ public class PlayerController : MonoBehaviour
     private Vector3 lastPosition;
     private PlayerAttackMelee playerAttack;
 
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -52,7 +51,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (playerAttack != null && !playerAttack.CanMove)
+        if (playerAttack != null && playerAttack.IsAttacking)
         {
             rb.linearVelocity = Vector3.zero;
             if (wasWalking && audioManager != null)
@@ -71,7 +70,6 @@ public class PlayerController : MonoBehaviour
         RotatePlayer(moveDirection);
         HandleFootstepAudio();
     }
-
     private void MovePlayer()
     {
         Vector3 velocity = moveDirection * currentSpeed;
@@ -89,7 +87,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleFootstepAudio()
     {
-        if (playerAttack != null && !playerAttack.CanMove)
+        if (playerAttack != null)
         {
             if (wasWalking)
             {

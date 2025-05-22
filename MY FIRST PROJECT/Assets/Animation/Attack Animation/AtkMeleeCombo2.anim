@@ -63075,15 +63075,8 @@ AnimationClip:
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
   m_Events:
-  - time: 0
-    functionName: MovePlayerOff
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
   - time: 1.1666666
-    functionName: ApplyMeleeDamageON
+    functionName: ComboStart
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -63096,22 +63089,15 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 1.4666667
-    functionName: ApplyMeleeDamageOFF
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 2.1666667
-    functionName: OnAttackAnimationEnd
+  - time: 1.8
+    functionName: NextCombo
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
   - time: 2.2
-    functionName: MovePlayerOn
+    functionName: ComboTime
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
