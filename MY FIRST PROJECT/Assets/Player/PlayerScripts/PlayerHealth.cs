@@ -36,6 +36,7 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = playerStatus.maxHealth;
         if (healthSlider != null)
         {
+            healthSlider.gameObject.SetActive(true);
             healthSlider.value = (float)currentHealth / playerStatus.maxHealth;
         }
         else

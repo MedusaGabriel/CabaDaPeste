@@ -6,14 +6,10 @@ public class CanvasPopUp : MonoBehaviour
 {
     public TextMeshProUGUI popupText;
     public Transform playerTransform;
-    [Header("Comportamento")]
-    public float fadeDuration = 1.5f;
-    public float minYOffset = 2f;
-    public float maxYOffset = 5f;
-
+    public float fadeDuration = 1f;
+    private int? lastDamage = null;
     private Animator popupAnimator;
     private Coroutine fadeCoroutine;
-    private float minFadeDuration = 0.2f;
 
     void Start()
     {
@@ -38,7 +34,6 @@ public class CanvasPopUp : MonoBehaviour
 
     void Update()
     {
-        // Mantém o popup acima do player
         if (playerTransform != null)
         {
             transform.position = playerTransform.position + Vector3.up * currentYOffset;
@@ -54,18 +49,20 @@ public class CanvasPopUp : MonoBehaviour
 
     public void ShowDamage(int damage)
     {
-        popupText.text = damage.ToString();
+        if (lastDamage.HasValue)
+            popupText.text = $"({lastDamage.Value}  {damage})";
+        else
+            popupText.text = damage.ToString();
+
+        lastDamage = damage; 
+
         popupText.gameObject.SetActive(true);
 
-        // Offset Y aleatório
-        currentYOffset = Random.Range(minYOffset, maxYOffset);
-
-        float currentAlpha = popupText.alpha;
-        float newFadeDuration = Mathf.Max(minFadeDuration, fadeDuration * currentAlpha);
+        float newFadeDuration = fadeDuration;
 
         if (popupAnimator != null)
         {
-            popupAnimator.speed = fadeDuration / newFadeDuration;
+            popupAnimator.speed = 1f;
             popupAnimator.Play("Pop-Up", -1, 0f);
         }
 
@@ -89,6 +86,8 @@ public class CanvasPopUp : MonoBehaviour
             popupAnimator.speed = 1f;
 
         popupText.gameObject.SetActive(false);
-        gameObject.SetActive(false); 
+        gameObject.SetActive(false);
+
+        lastDamage = null;
     }
 }
