@@ -5,7 +5,8 @@ public class RestartGame : MonoBehaviour
 {
     public void Restart()
     {
-        Time.timeScale = 1f; // Resetar o tempo pra voltar ao normal
+        Debug.Log("Botão Reiniciar Fase pressionado!");
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name); // Recarregar a cena atual
     }
 }

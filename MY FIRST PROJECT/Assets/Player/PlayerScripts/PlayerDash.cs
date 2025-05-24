@@ -1,23 +1,18 @@
 using UnityEngine;
-using System.Collections;
-using UnityEngine.UI;
 
 public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-
     public string dashParam = "Dash";
     public string dashTrigger = "IsDash";
 
-    [Header("Cooldown UI")]
-    public Slider cooldownSlider;
-    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
+    [Header("Dash HUD")]
+    public GameObject fillDashHUD;
 
     private Rigidbody _rigidbody;
     private Animator animator;
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
-    private GameObject sliderWorldObject;
     private PlayerAttackMelee _playerAttackMelee;
     private PlayerTarget _playerTarget;
     private PlayerStatus playerStatus;
@@ -26,8 +21,6 @@ public class PlayerDash : MonoBehaviour
     private float dashSpeed;
     private PlayerStamina playerStamina;
 
-
-
     void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
@@ -35,19 +28,13 @@ public class PlayerDash : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
-
         _playerAttackMelee = GetComponent<PlayerAttackMelee>();
         _playerTarget = GetComponent<PlayerTarget>();
 
-        if (cooldownSlider != null)
-        {
-            cooldownSlider.gameObject.SetActive(false);
-            CreateWorldSpaceSlider();
-        }
+        if (fillDashHUD != null)
+            fillDashHUD.SetActive(true);
         else
-        {
-            Debug.LogError("Atribua um Slider UI no Inspector!");
-        }
+            Debug.LogError("Atribua o FillDash HUD no Inspector!");
     }
 
     void Update()
@@ -64,20 +51,7 @@ public class PlayerDash : MonoBehaviour
             }
         }
 
-        if (!_playerTarget.IsTargeting)
-        {
-            FaceSliderToCamera();
-        }
-
-        UpdateCooldownUI();
-    }
-
-    void LateUpdate()
-    {
-        if (sliderWorldObject != null)
-        {
-            sliderWorldObject.transform.position = transform.position + sliderOffset;
-        }
+        UpdateDashHUD();
     }
 
     void TryDash()
@@ -94,12 +68,11 @@ public class PlayerDash : MonoBehaviour
             }
         }
     }
-    IEnumerator DashRoutine()
+
+    System.Collections.IEnumerator DashRoutine()
     {
         isDashing = true;
         lastDashTime = Time.time;
-        cooldownSlider.gameObject.SetActive(true);
-        cooldownSlider.value = 0f;
 
         if (_playerController != null)
             _playerController.enabled = false;
@@ -133,48 +106,23 @@ public class PlayerDash : MonoBehaviour
         isDashing = false;
     }
 
-    public void ApplyDashImpulse()
+    void UpdateDashHUD()
     {
-        _rigidbody.linearVelocity = Vector3.zero;
-        _rigidbody.AddForce(dashDirection * dashSpeed, ForceMode.VelocityChange);
+        if (fillDashHUD == null) return;
+
+        bool dashDisponivel = (Time.time > lastDashTime + playerStatus.dashCooldown);
+        fillDashHUD.SetActive(dashDisponivel);
     }
+
     public void EnablePlayerController()
     {
         if (_playerController != null)
             _playerController.enabled = true;
     }
-    void UpdateCooldownUI()
+
+    public void ApplyDashImpulse()
     {
-        if (cooldownSlider == null) return;
-
-        float progress = Mathf.Clamp01((Time.time - lastDashTime) / playerStatus.dashCooldown);
-        cooldownSlider.value = progress;
-        cooldownSlider.gameObject.SetActive(progress < 1f);
-    }
-
-    void FaceSliderToCamera()
-    {
-        if (sliderWorldObject != null && Camera.main != null)
-        {
-            sliderWorldObject.transform.forward = -Camera.main.transform.forward;
-        }
-    }
-
-    void CreateWorldSpaceSlider()
-    {
-        sliderWorldObject = new GameObject("CooldownSliderWorld");
-        sliderWorldObject.transform.SetParent(transform);
-        sliderWorldObject.transform.localPosition = sliderOffset;
-
-        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
-
-        Slider worldSlider = Instantiate(cooldownSlider, sliderWorldObject.transform);
-        worldSlider.transform.localPosition = Vector3.zero;
-        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-
-        cooldownSlider = worldSlider;
-        cooldownSlider.value = 0;
+        _rigidbody.linearVelocity = Vector3.zero;
+        _rigidbody.AddForce(dashDirection * dashSpeed, ForceMode.VelocityChange);
     }
 }

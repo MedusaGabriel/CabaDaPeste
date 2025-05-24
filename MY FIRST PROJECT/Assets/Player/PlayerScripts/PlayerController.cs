@@ -87,7 +87,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleFootstepAudio()
     {
-        if (playerAttack != null)
+        if (playerAttack != null && playerAttack.IsAttacking)
         {
             if (wasWalking)
             {

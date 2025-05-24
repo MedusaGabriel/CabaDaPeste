@@ -19,21 +19,29 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    public GameObject gameOverCanvas;
-    public Button restartButton;
     private PlayerStatus playerStatus;
-    public Animator playerAnimator;
     private bool isDead = false;
+    public Animator playerAnimator;
     public CanvasPopUp canvasPopUpPrefab;
     public DamagePopUpPool popupPool;
+    [Header("HUD - Game Over UI")]
+    public GameObject gameOverCanvas;
 
-    [Header("Health UI")]
+    [Header("HUD - Health UI")]
+    public GameObject lifeStaminaHUD;
     public Slider healthSlider;
+    public Image hudImageFrente;
+    public Sprite[] hudImageFrenteSprites;
+
+    private int tempNumber = 0;
 
     void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
         currentHealth = playerStatus.maxHealth;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
         if (healthSlider != null)
         {
             healthSlider.gameObject.SetActive(true);
@@ -43,15 +51,28 @@ public class PlayerHealth : MonoBehaviour
         {
             Debug.LogError("Atribua um Slider UI no Inspector!");
         }
+        if (lifeStaminaHUD != null)
+        {
+            lifeStaminaHUD.SetActive(true);
+        }
     }
 
     void Update()
     {
-        // Não é mais necessário chamar UpdateHealthUI() a cada frame
         if (Input.GetKeyDown(KeyCode.F5))
         {
-            int dano = Random.Range(1, 21);
+            int dano = 50;
             TakeDamage(dano);
+        }
+
+        if (Input.GetKeyDown(KeyCode.F6))
+        {
+            tempNumber++;
+            if (tempNumber >= hudImageFrenteSprites.Length)
+            {
+                tempNumber = 0;
+            }
+            hudImageFrente.sprite = hudImageFrenteSprites[tempNumber];
         }
     }
 
@@ -85,6 +106,11 @@ public class PlayerHealth : MonoBehaviour
         gameOverCanvas.SetActive(true);
         playerAnimator.SetTrigger("Death");
         playerAnimator.SetBool("IsDead", true);
+
+        // Habilita o mouse
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         StartCoroutine(PauseGameAfterDelay(2f));
     }
 
@@ -92,12 +118,5 @@ public class PlayerHealth : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         Time.timeScale = 0f;
-    }
-
-    public void RestartGame()
-    {
-        Debug.Log("Botão Restart foi pressionado!");
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }

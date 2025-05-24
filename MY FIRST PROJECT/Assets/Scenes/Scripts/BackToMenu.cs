@@ -4,7 +4,8 @@ public class BackToMenu : MonoBehaviour
 {
     public void GoToMainMenu()
     {
-        Time.timeScale = 1f; // Garante que o tempo esteja normal
-        SceneManager.LoadScene(0); // Vai para a cena do menu (Ìndice 0)
+            Debug.Log("Bot√£o Menu Fase pressionado!");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0);
     }
 }
