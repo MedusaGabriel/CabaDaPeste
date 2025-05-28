@@ -6,27 +6,30 @@ public class PlayerAttackMelee : MonoBehaviour
     [Header("Referência para a Arma")]
     [Tooltip("Arraste aqui o objeto da arma que contém o BoxCollider.")]
     public GameObject weaponObject;
+
+    [Header("Efeito da Espada")]
+    public GameObject effectSword;
     private PlayerStamina playerStamina;
     private PlayerStatus playerStatus;
     private int comboIndex = 0;
-    private float comboResetTime = 1.5f;
-    private float comboTimer = 0f;
+
     public Animator playerAnimator;
 
     private bool comboQueued = false;
-    public ParticleSystem weaponEffect;
-    public bool CanMove { get; private set; } = true;
     public bool IsAttacking { get; private set; } = false;
-
     private HashSet<GameObject> _enemiesHit = new HashSet<GameObject>();
+    private Rigidbody rb;
+
+    private bool isPerformingSpecialMove = false;
+    private float specialMoveDuration = 0.7f; // ajuste conforme a duração da animação
+    private float specialMoveTimer = 0f;
+    public float specialMoveSpeed = 8f;
 
     private void Start()
     {
         playerStamina = GetComponent<PlayerStamina>();
         playerStatus = GetComponent<PlayerStatus>();
-
-        if (weaponEffect != null)
-            weaponEffect.Stop();
+        rb = GetComponent<Rigidbody>();
 
         Collider playerCollider = GetComponent<Collider>();
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
@@ -40,9 +43,10 @@ public class PlayerAttackMelee : MonoBehaviour
 
     void Update()
     {
+
         if (Input.GetMouseButtonDown(0))
         {
-            if (!IsAttacking && playerStamina.TryConsumeStamina())
+            if (!IsAttacking)
             {
                 PerformComboAttack();
             }
@@ -54,35 +58,39 @@ public class PlayerAttackMelee : MonoBehaviour
 
         if (!IsAttacking && comboQueued)
         {
-            if (playerStamina.TryConsumeStamina())
+            PerformComboAttack();
+            comboQueued = false;
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            playerAnimator.SetTrigger("SpecialMove");
+            isPerformingSpecialMove = true;
+            specialMoveTimer = 0f;
+        }
+
+        // Movimento durante o Special Move
+        if (isPerformingSpecialMove)
+        {
+            specialMoveTimer += Time.deltaTime;
+            transform.position += transform.forward * specialMoveSpeed * Time.deltaTime;
+
+            if (specialMoveTimer >= specialMoveDuration)
             {
-                PerformComboAttack();
-                comboQueued = false;
+                isPerformingSpecialMove = false;
             }
         }
 
-        if (comboIndex > 0)
-        {
-            comboTimer += Time.deltaTime;
-            if (comboTimer >= comboResetTime)
-            {
-                ResetCombo();
-            }
-        }
-    }
-    public void PlayAttackSound()
-    {
-        var audioManager = GetComponent<PlayerAudioManager>();
-        if (audioManager != null)
-        {
-            audioManager.PlayAttack();
-        }
     }
 
     private void PerformComboAttack()
     {
-        SetAttackState(true, false);
-        comboTimer = 0f;
+        if (!playerStamina.TryConsumeStamina())
+        {
+            ResetCombo();
+            return;
+        }
+
+        SetAttackState(true);
 
         if (comboIndex == 0)
             playerAnimator.SetTrigger("PlayerMelee");
@@ -94,9 +102,15 @@ public class PlayerAttackMelee : MonoBehaviour
         comboIndex++;
     }
 
-    public void OnAttackAnimationEnd()
+    private void ResetCombo()
     {
-        if (comboQueued && playerStamina.TryConsumeStamina())
+        comboIndex = 0;
+        SetAttackState(false);
+    }
+
+    public void ComboTime()
+    {
+        if (comboQueued)
         {
             PerformComboAttack();
             comboQueued = false;
@@ -104,26 +118,22 @@ public class PlayerAttackMelee : MonoBehaviour
         else
         {
             ResetCombo();
+            IsAttacking = false;
         }
     }
 
-    private void ResetCombo()
-    {
-        comboIndex = 0;
-        comboTimer = 0f;
-        SetAttackState(false, true);
-
-    }
-
-    private void SetAttackState(bool isAttacking, bool canMove)
+    private void SetAttackState(bool isAttacking)
     {
         IsAttacking = isAttacking;
-        CanMove = canMove;
     }
 
-    public void EnableCollider()
+
+    public void ComboStart()
     {
         _enemiesHit.Clear();
+
+        if (effectSword != null)
+            effectSword.SetActive(true);
 
         float attackRange = playerStatus.attackRange;
         float attackAngle = 90f;
@@ -158,23 +168,14 @@ public class PlayerAttackMelee : MonoBehaviour
         playerAnimator.SetBool("IsAttacking", true);
     }
 
-    public void DisableCollider()
+    public void NextCombo()
     {
         _enemiesHit.Clear();
         playerAnimator.SetBool("IsAttacking", false);
         IsAttacking = false;
 
-        if (weaponEffect != null)
-            weaponEffect.Stop();
-    }
-    public void MovePlayerOn()
-    {
-        CanMove = true;
-    }
-
-    public void MovePlayerOff()
-    {
-        CanMove = false;
+        if (effectSword != null)
+            effectSword.SetActive(false);
     }
 
     private void OnDrawGizmosSelected()
@@ -183,14 +184,13 @@ public class PlayerAttackMelee : MonoBehaviour
         {
             Gizmos.color = Color.blue;
 
-            float attackRange = playerStatus.attackRange; // Distância máxima do ataque
-            float attackAngle = 90f; // Ângulo da meia-lua (90 graus)
+            float attackRange = playerStatus.attackRange;
+            float attackAngle = 90f;
 
-            // Desenha a meia-lua
             Vector3 forward = transform.forward;
             Vector3 startPosition = transform.position;
 
-            int segments = 20; // Número de segmentos para desenhar o arco
+            int segments = 20;
             float angleStep = attackAngle / segments;
 
             Vector3 previousPoint = startPosition + Quaternion.Euler(0, -attackAngle / 2f, 0) * forward * attackRange;
@@ -209,4 +209,6 @@ public class PlayerAttackMelee : MonoBehaviour
             Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, attackAngle / 2f, 0) * forward * attackRange);
         }
     }
+
+
 }

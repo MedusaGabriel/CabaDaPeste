@@ -6,13 +6,10 @@ public class CanvasPopUp : MonoBehaviour
 {
     public TextMeshProUGUI popupText;
     public Transform playerTransform;
-    public float fadeDuration = 1.5f;
-    public float verticalOffset = 2f;
+    public float fadeDuration = 1f;
+    private int? lastDamage = null;
     private Animator popupAnimator;
-
     private Coroutine fadeCoroutine;
-    private float minFadeDuration = 0.2f;
-
 
     void Start()
     {
@@ -22,15 +19,16 @@ public class CanvasPopUp : MonoBehaviour
             if (playerObj != null)
             {
                 playerTransform = playerObj.transform;
-                Debug.Log($"[CanvasPopUp] Player encontrado! Posição atual: {playerTransform.position}");
             }
             else
             {
-                Debug.LogWarning("[CanvasPopUp] Nenhum objeto com a tag 'Player' foi encontrado na cena!");
+                Debug.LogWarning("[CanvasPopUp] Nenhum objeto com a tag 'Player' foi encontrado na cena! Pop-up desativado.");
+                gameObject.SetActive(false);
+                return;
             }
         }
 
-        popupText.gameObject.SetActive(false);
+        popupText.gameObject.SetActive(true);
         popupAnimator = popupText.GetComponent<Animator>();
     }
 
@@ -38,8 +36,7 @@ public class CanvasPopUp : MonoBehaviour
     {
         if (playerTransform != null)
         {
-                        transform.position = playerTransform.position + Vector3.up * verticalOffset;
-
+            transform.position = playerTransform.position + Vector3.up * currentYOffset;
             if (Camera.main != null)
             {
                 transform.LookAt(transform.position + Camera.main.transform.rotation * Vector3.forward,
@@ -47,26 +44,34 @@ public class CanvasPopUp : MonoBehaviour
             }
         }
     }
+
+    private float currentYOffset = 2f;
+
     public void ShowDamage(int damage)
     {
-        popupText.text = damage.ToString();
+        if (lastDamage.HasValue)
+            popupText.text = $"({lastDamage.Value}  {damage})";
+        else
+            popupText.text = damage.ToString();
+
+        lastDamage = damage; 
+
         popupText.gameObject.SetActive(true);
 
-        float currentAlpha = popupText.alpha;
-        float newFadeDuration = Mathf.Max(minFadeDuration, fadeDuration * currentAlpha);
+        float newFadeDuration = fadeDuration;
 
         if (popupAnimator != null)
         {
-            popupAnimator.speed = fadeDuration / newFadeDuration;
+            popupAnimator.speed = 1f;
             popupAnimator.Play("Pop-Up", -1, 0f);
         }
 
         if (fadeCoroutine != null)
             StopCoroutine(fadeCoroutine);
-        fadeCoroutine = StartCoroutine(FadeOut(newFadeDuration));
+        fadeCoroutine = StartCoroutine(FadeOutAndDeactivate(newFadeDuration));
     }
 
-    IEnumerator FadeOut(float duration)
+    IEnumerator FadeOutAndDeactivate(float duration)
     {
         popupText.alpha = 1f;
         float elapsed = 0f;
@@ -77,9 +82,12 @@ public class CanvasPopUp : MonoBehaviour
             yield return null;
         }
         popupText.alpha = 0f;
-        popupText.gameObject.SetActive(false);
-
         if (popupAnimator != null)
             popupAnimator.speed = 1f;
+
+        popupText.gameObject.SetActive(false);
+        gameObject.SetActive(false);
+
+        lastDamage = null;
     }
 }

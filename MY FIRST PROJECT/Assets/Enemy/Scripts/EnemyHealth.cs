@@ -83,7 +83,6 @@ public class EnemyHealth : MonoBehaviour
 
     public void Die()
     {
-
         StartCoroutine(WaitAndDestroy());
     }
 

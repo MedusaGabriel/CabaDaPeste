@@ -17,23 +17,24 @@ public class EnemyController : MonoBehaviour
     private EnemyStatus enemyStatus;
     private EnemyAudioManager _audioManager;
     private bool wasRunning = false;
+    public Transform Target;
 
     void Start()
     {
         enemyStatus = GetComponent<EnemyStatus>();
-        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
-        {
-            player = playerObj.transform;
+        // GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        // if (playerObj != null)
+        // {
+        //     player = playerObj.transform;
 
-            Collider playerCollider = playerObj.GetComponent<Collider>();
-            Collider enemyCollider = GetComponent<Collider>();
-            if (playerCollider != null && enemyCollider != null)
-            {
-                Physics.IgnoreCollision(enemyCollider, playerCollider);
-            }
-        }
-
+        //     Collider playerCollider = playerObj.GetComponent<Collider>();
+        //     Collider enemyCollider = GetComponent<Collider>();
+        //     if (playerCollider != null && enemyCollider != null)
+        //     {
+        //         Physics.IgnoreCollision(enemyCollider, playerCollider);
+        //     }
+        // }
+        player = Target;
         agent = GetComponent<NavMeshAgent>();
         if (agent != null)
         {
@@ -80,6 +81,7 @@ public class EnemyController : MonoBehaviour
     }
     void Update()
     {
+
         if (agent == null || !agent.enabled)
             return;
 
@@ -92,8 +94,6 @@ public class EnemyController : MonoBehaviour
         }
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
-
-        // Verifica se o player está dentro do cone de ataque
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
 

@@ -3,17 +3,12 @@ using UnityEngine.UI;
 
 public class PlayerStamina : MonoBehaviour
 {
-    public int maxStamina = 5;
-    public float recoveryTime = 0.5f;
     private int currentStamina;
     private float timer;
     public int CurrentStamina => currentStamina;
-
     public Slider staminaSlider;
-    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
-    public GameObject noStaminaPrefab;
-    private GameObject sliderWorldObject;
     private PlayerStatus playerStatus;
+    private CanvasPopUp currentPopup;
 
 
     void Start()
@@ -22,36 +17,29 @@ public class PlayerStamina : MonoBehaviour
         currentStamina = playerStatus.maxStamina;
         if (staminaSlider != null)
         {
-            CreateWorldSpaceSlider();
+            staminaSlider.gameObject.SetActive(true); // Ative o slider na UI
+            staminaSlider.value = 1f;
         }
         else
         {
             Debug.LogError("Atribua um Slider UI no Inspector para Stamina!");
         }
+        // Remova chamada para CreateWorldSpaceSlider();
     }
 
-    void LateUpdate()
+void Update()
+{
+    UpdateStaminaUI();
+    if (currentStamina < playerStatus.maxStamina)
     {
-        if (sliderWorldObject != null)
+        timer += Time.deltaTime;
+        if (timer >= playerStatus.staminaRecoveryTime)
         {
-            sliderWorldObject.transform.position = transform.position + sliderOffset;
-            FaceSliderToCamera();
+            currentStamina++;
+            timer = 0f;
         }
     }
-    void Update()
-    {
-        UpdateStaminaUI();
-        if (currentStamina < playerStatus.maxStamina)
-        {
-            timer += Time.deltaTime;
-            if (timer >= playerStatus.staminaRecoveryTime)
-            {
-                currentStamina++;
-                timer = 0f;
-            }
-        }
-    }
-
+}
     public bool TryConsumeStamina(int amount = 1)
     {
         if (currentStamina >= amount)
@@ -59,27 +47,9 @@ public class PlayerStamina : MonoBehaviour
             currentStamina -= amount;
             return true;
         }
-        ShowNoStaminaMessage(); 
+        // ShowNoStaminaMessage();
         return false;
 
-    }
-
-    void CreateWorldSpaceSlider()
-    {
-        sliderWorldObject = new GameObject("StaminaSliderWorld");
-        sliderWorldObject.transform.SetParent(transform);
-        sliderWorldObject.transform.localPosition = sliderOffset;
-
-        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
-
-        Slider worldSlider = Instantiate(staminaSlider, sliderWorldObject.transform);
-        worldSlider.transform.localPosition = Vector3.zero;
-        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-
-        staminaSlider = worldSlider;
-        staminaSlider.value = 1f;
     }
 
     void UpdateStaminaUI()
@@ -90,17 +60,20 @@ public class PlayerStamina : MonoBehaviour
         staminaSlider.value = fill;
     }
 
-    void FaceSliderToCamera()
-    {
-        if (sliderWorldObject != null && Camera.main != null)
-        {
-            sliderWorldObject.transform.forward = -Camera.main.transform.forward;
-        }
-    }
-    private void ShowNoStaminaMessage()
-    {
-        Vector3 spawnPosition = transform.position + Vector3.up * 1.5f;
-        GameObject textObj = Instantiate(noStaminaPrefab, spawnPosition, Quaternion.identity);
-        Destroy(textObj, 1.5f);
-    }
+    // public void ShowCustomMessage(string message)
+    // {
+    //     popupText.text = message;
+    //     popupText.gameObject.SetActive(true);
+
+    //     currentYOffset = Random.Range(minYOffset, maxYOffset);
+
+    //     if (popupAnimator != null)
+    //     {
+    //         popupAnimator.Play("Pop-Up", -1, 0f);
+    //     }
+
+    //     if (fadeCoroutine != null)
+    //         StopCoroutine(fadeCoroutine);
+    //     fadeCoroutine = StartCoroutine(FadeOutAndDeactivate(fadeDuration));
+    // }
 }
