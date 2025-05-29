@@ -101,7 +101,6 @@ public class PlayerAttackMelee : MonoBehaviour
 
         comboIndex++;
     }
-
     private void ResetCombo()
     {
         comboIndex = 0;

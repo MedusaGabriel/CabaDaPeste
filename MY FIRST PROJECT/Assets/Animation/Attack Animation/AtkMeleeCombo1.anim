@@ -97167,7 +97167,7 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 1.4
+  - time: 1.3666667
     functionName: ComboTime
     data: 
     objectReferenceParameter: {fileID: 0}
