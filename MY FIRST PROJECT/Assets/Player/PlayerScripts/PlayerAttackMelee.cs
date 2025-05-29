@@ -21,7 +21,7 @@ public class PlayerAttackMelee : MonoBehaviour
     private Rigidbody rb;
 
     private bool isPerformingSpecialMove = false;
-    private float specialMoveDuration = 0.7f; // ajuste conforme a duração da animação
+    private float specialMoveDuration = 0.7f;
     private float specialMoveTimer = 0f;
     public float specialMoveSpeed = 8f;
 
@@ -68,7 +68,6 @@ public class PlayerAttackMelee : MonoBehaviour
             specialMoveTimer = 0f;
         }
 
-        // Movimento durante o Special Move
         if (isPerformingSpecialMove)
         {
             specialMoveTimer += Time.deltaTime;
@@ -202,8 +201,6 @@ public class PlayerAttackMelee : MonoBehaviour
                 Gizmos.DrawLine(previousPoint, currentPoint);
                 previousPoint = currentPoint;
             }
-
-            // Conecta o arco ao centro
             Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, -attackAngle / 2f, 0) * forward * attackRange);
             Gizmos.DrawLine(startPosition, startPosition + Quaternion.Euler(0, attackAngle / 2f, 0) * forward * attackRange);
         }
