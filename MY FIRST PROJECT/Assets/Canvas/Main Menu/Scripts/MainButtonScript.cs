@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Audio;
 
 public class MainButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -8,6 +9,10 @@ public class MainButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public float animationSpeed = 10f;
 
     private bool isHovered = false;
+
+    [Header("Audio")]
+    public AudioClip hoverSound;
+    public AudioMixerGroup clickMixerGroup;
 
     void Start()
     {
@@ -23,6 +28,10 @@ public class MainButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovered = true;
+        if (hoverSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySound(hoverSound, clickMixerGroup);
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
