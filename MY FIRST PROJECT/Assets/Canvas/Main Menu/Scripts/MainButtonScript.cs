@@ -9,9 +9,6 @@ public class MainButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerExi
 
     private bool isHovered = false;
 
-    [Header("Som de Hover")]
-    public AudioClip hoverSound;
-
     void Start()
     {
         originalScale = transform.localScale;
@@ -26,19 +23,10 @@ public class MainButtonScript : MonoBehaviour, IPointerEnterHandler, IPointerExi
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovered = true;
-        TocarSomHover();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         isHovered = false;
-    }
-
-    private void TocarSomHover()
-    {
-        if (hoverSound != null && AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySound(hoverSound);
-        }
     }
 }
