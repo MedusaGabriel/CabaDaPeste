@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Audio;
 
 public class MainMenu : MonoBehaviour
 {
@@ -13,8 +14,24 @@ public class MainMenu : MonoBehaviour
     public Image fadeImage;
     public float fadeDuration = 1f;
 
+    [Header("Áudio")]
+    public AudioClip clickSound;
+    public AudioMixerGroup clickMixerGroup;
+
+    void Start()
+    {
+        // Não precisa mais de AudioSource aqui
+    }
+
+    private void TocarSomDeClique()
+    {
+        if (clickSound != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySound(clickSound, clickMixerGroup);
+    }
+
     public void AbrirJogo()
     {
+        TocarSomDeClique();
         fadeImage.gameObject.SetActive(true);
         StartCoroutine(FadeAndLoadScene());
     }
@@ -36,16 +53,19 @@ public class MainMenu : MonoBehaviour
 
     public void AbrirOpcoes()
     {
+        TocarSomDeClique();
         mainMenuCanvas.SetActive(false);
         opcoesCanvas.SetActive(true);
     }
     public void AbrirCreditos()
     {
+        TocarSomDeClique();
         mainMenuCanvas.SetActive(false);
         creditosCanvas.SetActive(true);
     }
     public void VoltarAoMenu()
     {
+        TocarSomDeClique();
         creditosCanvas.SetActive(false);
         opcoesCanvas.SetActive(false);
         mainMenuCanvas.SetActive(true);
@@ -53,6 +73,7 @@ public class MainMenu : MonoBehaviour
     // Chama quando clica em "Sair"
     public void SairDoJogo()
     {
+        TocarSomDeClique();
         Debug.Log("Saindo do jogo...");
         Application.Quit();
     }
