@@ -13,8 +13,6 @@ public class PlayerDash : MonoBehaviour
     private Animator animator;
     private float lastDashTime = -Mathf.Infinity;
     private bool isDashing = false;
-    private PlayerAttackMelee _playerAttackMelee;
-    private PlayerTarget _playerTarget;
     private PlayerStatus playerStatus;
     private PlayerController _playerController;
     private Vector3 dashDirection;
@@ -28,9 +26,6 @@ public class PlayerDash : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
-        _playerAttackMelee = GetComponent<PlayerAttackMelee>();
-        _playerTarget = GetComponent<PlayerTarget>();
-
         if (fillDashHUD != null)
             fillDashHUD.SetActive(true);
         else
@@ -41,14 +36,7 @@ public class PlayerDash : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (_playerAttackMelee != null && _playerAttackMelee.IsAttacking)
-            {
-                return;
-            }
-            else
-            {
-                TryDash();
-            }
+            TryDash();
         }
 
         UpdateDashHUD();
@@ -64,7 +52,7 @@ public class PlayerDash : MonoBehaviour
             }
             else
             {
-                Debug.Log("Sem stamina para dash!");
+                Debug.Log("Stamina insuficiente para realizar o Dash.");
             }
         }
     }
@@ -77,12 +65,12 @@ public class PlayerDash : MonoBehaviour
         if (_playerController != null)
             _playerController.enabled = false;
 
-        float dashValue = (_playerTarget != null && _playerTarget.IsTargeting) ? 2f : 1f;
+        float dashValue = 1f;
         animator.SetFloat(dashParam, dashValue);
         animator.SetTrigger(dashTrigger);
 
-        dashDirection = (dashValue == 2f) ? -transform.forward : transform.forward;
-        float dashDistance = playerStatus.dashDistance * dashValue;
+        dashDirection = transform.forward;
+        float dashDistance = playerStatus.dashDistance;
         float dashTime = playerStatus.dashTime;
 
         Vector3 start = transform.position;

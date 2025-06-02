@@ -19,9 +19,4 @@ public class PlayerStatus : MonoBehaviour
     public float dashTime = 0.25f;
     public float dashCooldown = 2f;
 
-    [Header("Ataque")]
-    public float attackDamage = 20f;
-    public float attackSpeed = 1f;
-    public float attackRange = 1f;
-    public float knockbackForce = 5f;
 }

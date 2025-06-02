@@ -33,8 +33,6 @@ public class PlayerHealth : MonoBehaviour
     public Image hudImageFrente;
     public Sprite[] hudImageFrenteSprites;
 
-    private int tempNumber = 0;
-
     void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
@@ -57,24 +55,6 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F5))
-        {
-            int dano = 50;
-            TakeDamage(dano);
-        }
-
-        if (Input.GetKeyDown(KeyCode.F6))
-        {
-            tempNumber++;
-            if (tempNumber >= hudImageFrenteSprites.Length)
-            {
-                tempNumber = 0;
-            }
-            hudImageFrente.sprite = hudImageFrenteSprites[tempNumber];
-        }
-    }
 
     public void TakeDamage(int damage)
     {

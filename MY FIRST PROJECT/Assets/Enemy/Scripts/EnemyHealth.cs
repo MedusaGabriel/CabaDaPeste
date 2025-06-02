@@ -89,8 +89,8 @@ public class EnemyHealth : MonoBehaviour
     private IEnumerator WaitAndDestroy()
     {
         yield return new WaitForSeconds(2f);
-        GetComponent<ExpDrop>().DropXP(playerGameObject);
         GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
+        FindFirstObjectByType<AttackSpecial>()?.AddCharge();
         Destroy(gameObject);
     }
 

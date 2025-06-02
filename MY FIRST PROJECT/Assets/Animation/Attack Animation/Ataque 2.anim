@@ -6,7 +6,7 @@ AnimationClip:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: AtkMeleeCombo1
+  m_Name: Ataque 2
   serializedVersion: 7
   m_Legacy: 0
   m_Compressed: 0
@@ -15301,7 +15301,7 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.43333337
+        time: 0.43333334
         value: -0.12338478
         inSlope: -1.1250237
         outSlope: -1.1250237
@@ -64468,7 +64468,7 @@ AnimationClip:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 0.43333337
+        time: 0.43333334
         value: -0.12338478
         inSlope: -1.1250237
         outSlope: -1.1250237
@@ -97147,7 +97147,7 @@ AnimationClip:
   m_HasMotionFloatCurves: 0
   m_Events:
   - time: 0.33333334
-    functionName: ComboStart
+    functionName: Start_Combo
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0
@@ -97160,15 +97160,8 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.9
-    functionName: NextCombo
-    data: 
-    objectReferenceParameter: {fileID: 0}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
   - time: 1.3666667
-    functionName: ComboTime
+    functionName: Finish_Ani
     data: 
     objectReferenceParameter: {fileID: 0}
     floatParameter: 0

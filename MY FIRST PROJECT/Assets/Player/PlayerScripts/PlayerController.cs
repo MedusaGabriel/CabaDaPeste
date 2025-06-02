@@ -11,23 +11,28 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody rb;
     private Vector3 moveDirection;
-    private bool wasWalking = false;
-    private bool wasRunning = false;
     private Vector3 lastPosition;
-    private PlayerAttackMelee playerAttack;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         lastPosition = transform.position;
-        playerAttack = GetComponent<PlayerAttackMelee>();
     }
 
     private void Update()
     {
+        ComboAttack combo = GetComponent<ComboAttack>();
+        if (combo != null && combo.atacando)
+        {
+            moveDirection = Vector3.zero;
+            currentSpeed = 0f;
+            if (anim != null)
+                anim.SetFloat("Speed", 0f);
+            return;
+        }
+
         Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         moveDirection = cameraInputFollow.GetCameraRelativeDirection(input);
-
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
         float targetSpeed = isRunning ? playerStatus.sprintSpeed : playerStatus.moveSpeed;
 
@@ -51,24 +56,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (playerAttack != null && playerAttack.IsAttacking)
-        {
-            rb.linearVelocity = Vector3.zero;
-            if (wasWalking && audioManager != null)
-            {
-                audioManager.StopWalkLoop();
-                wasWalking = false;
-            }
-            if (wasRunning && audioManager != null)
-            {
-                audioManager.StopRunLoop();
-                wasRunning = false;
-            }
-            return;
-        }
         MovePlayer();
         RotatePlayer(moveDirection);
-        HandleFootstepAudio();
     }
     private void MovePlayer()
     {
@@ -85,68 +74,5 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
     }
 
-    private void HandleFootstepAudio()
-    {
-        if (playerAttack != null && playerAttack.IsAttacking)
-        {
-            if (wasWalking)
-            {
-                audioManager.StopWalkLoop();
-                wasWalking = false;
-            }
-            if (wasRunning)
-            {
-                audioManager.StopRunLoop();
-                wasRunning = false;
-            }
-            return;
-        }
 
-        if (audioManager == null) return;
-
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        Vector2 input = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        bool isInputPressed = input.x != 0 || input.y != 0;
-
-        // Verifica se a posição mudou significativamente
-        bool isActuallyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f && isInputPressed;
-
-        if (isActuallyMoving && !isRunning)
-        {
-            if (!wasWalking)
-            {
-                audioManager.PlayWalkLoop();
-                wasWalking = true;
-                wasRunning = false;
-            }
-        }
-        else
-        {
-            if (wasWalking)
-            {
-                audioManager.StopWalkLoop();
-                wasWalking = false;
-            }
-        }
-
-        if (isActuallyMoving && isRunning)
-        {
-            if (!wasRunning)
-            {
-                audioManager.PlayRunLoop();
-                wasRunning = true;
-                wasWalking = false;
-            }
-        }
-        else
-        {
-            if (wasRunning)
-            {
-                audioManager.StopRunLoop();
-                wasRunning = false;
-            }
-        }
-
-        lastPosition = transform.position;
-    }
 }

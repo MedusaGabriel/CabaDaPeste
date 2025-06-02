@@ -11,7 +11,6 @@ public class PlayerTarget : MonoBehaviour
     private List<Transform> _enemiesInRange = new List<Transform>();
     private Transform _currentTarget;
     private bool _isTargeting;
-
     public bool IsTargeting => _isTargeting;
 
     [Header("Referência para Animator")]
@@ -19,67 +18,42 @@ public class PlayerTarget : MonoBehaviour
 
     [Header("Indicador de Alvo")]
     public GameObject targetIndicatorPrefab;
+    public float targetIndicatorOffsetY = 2f;
     private GameObject _currentIndicator;
 
-    void Start()
-    {
-        _animator = GetComponent<Animator>();
-    }
+    void Start() => _animator = GetComponent<Animator>();
 
     void Update()
     {
         if (Input.GetKeyDown(lockKey))
         {
-            if (!_isTargeting)
-            {
-                LockOnNearestEnemy();
-            }
-            else
-            {
-                SwitchTarget();
-            }
+            if (!_isTargeting) LockOnNearestEnemy();
+            else SwitchTarget();
         }
 
-        if (Input.GetKeyDown(unlockKey))
-        {
-            ClearLock();
-        }
+        if (Input.GetKeyDown(unlockKey)) ClearLock();
 
         if (_isTargeting && _currentTarget != null)
         {
-            FaceTarget();
+            var rb = GetComponent<Rigidbody>();
+            if (rb == null || rb.linearVelocity.sqrMagnitude < 0.01f)
+                FaceTarget();
         }
 
-        if (_animator != null)
-        {
-            _animator.SetBool("IsTarget", _isTargeting);
-        }
+        _animator?.SetBool("IsTarget", _isTargeting);
 
         UpdateTargetIndicator();
 
         if (_isTargeting)
-        {
-            var inputSystem = GetComponent<PlayerInputS.PlayerInputSystem>();
-            if (inputSystem != null)
-            {
-                inputSystem.SprintInput(false);
-            }
-        }
+            GetComponent<PlayerInputS.PlayerInputSystem>()?.SprintInput(false);
     }
 
     private void RefreshEnemiesInRange()
     {
         _enemiesInRange.Clear();
-        Collider[] hits = Physics.OverlapSphere(transform.position, lockRange);
-
-        foreach (Collider c in hits)
-        {
-            // Procura tags que comecem com "Enemy"
-            if (c.gameObject.tag.StartsWith("Enemy"))
-            {
+        foreach (var c in Physics.OverlapSphere(transform.position, lockRange))
+            if (c.CompareTag("Enemy") || c.tag.StartsWith("Enemy"))
                 _enemiesInRange.Add(c.transform);
-            }
-        }
 
         _enemiesInRange.Sort((a, b) =>
             Vector3.Distance(transform.position, a.position)
@@ -108,15 +82,9 @@ public class PlayerTarget : MonoBehaviour
         }
 
         int index = _enemiesInRange.IndexOf(_currentTarget);
-        if (index == -1)
-        {
-            _currentTarget = _enemiesInRange[0];
-        }
-        else
-        {
-            int nextIndex = (index + 1) % _enemiesInRange.Count;
-            _currentTarget = _enemiesInRange[nextIndex];
-        }
+        _currentTarget = index == -1
+            ? _enemiesInRange[0]
+            : _enemiesInRange[(index + 1) % _enemiesInRange.Count];
         CreateTargetIndicator();
     }
 
@@ -127,14 +95,17 @@ public class PlayerTarget : MonoBehaviour
         dir.y = 0f;
         if (dir != Vector3.zero)
         {
-            transform.rotation = Quaternion.LookRotation(dir);
+            Quaternion targetRot = Quaternion.LookRotation(dir);
+            var rb = GetComponent<Rigidbody>();
+            if (rb != null)
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, Time.deltaTime * 10f));
+            else
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, Time.deltaTime * 10f);
         }
     }
-
     private void ClearLock()
     {
         _currentTarget = null;
-        _enemiesInRange.Clear();
         _isTargeting = false;
         if (_currentIndicator != null)
         {
@@ -143,31 +114,29 @@ public class PlayerTarget : MonoBehaviour
         }
     }
 
+    private Vector3 GetIndicatorPosition() =>
+        _currentTarget.position + Vector3.up * targetIndicatorOffsetY;
+
     private void CreateTargetIndicator()
     {
         if (_currentIndicator != null)
-        {
             Destroy(_currentIndicator);
-        }
 
         if (!_isTargeting || _currentTarget == null || targetIndicatorPrefab == null) return;
 
-        Vector3 spawnPos = _currentTarget.position + Vector3.up * 2f;
-        _currentIndicator = Instantiate(targetIndicatorPrefab, spawnPos, Quaternion.identity);
-        _currentIndicator.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        _currentIndicator = Instantiate(targetIndicatorPrefab, GetIndicatorPosition(), Quaternion.identity);
+        _currentIndicator.transform.localScale = Vector3.one * 0.5f;
 
-        Renderer rend = _currentIndicator.GetComponent<Renderer>();
+        var rend = _currentIndicator.GetComponent<Renderer>();
         if (rend != null)
-        {
             rend.material.color = Color.magenta;
-        }
     }
 
     private void UpdateTargetIndicator()
     {
         if (_currentIndicator == null || _currentTarget == null) return;
 
-        _currentIndicator.transform.position = _currentTarget.position + Vector3.up * 2f;
+        _currentIndicator.transform.position = GetIndicatorPosition();
         _currentIndicator.transform.Rotate(Vector3.up, 100f * Time.deltaTime);
     }
 

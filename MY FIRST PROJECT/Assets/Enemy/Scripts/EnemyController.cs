@@ -15,27 +15,14 @@ public class EnemyController : MonoBehaviour
     private bool canCombo = true;
     private bool isHit = false;
     private EnemyStatus enemyStatus;
-    private EnemyAudioManager _audioManager;
-    private bool wasRunning = false;
     public Transform Target;
 
     void Start()
     {
         enemyStatus = GetComponent<EnemyStatus>();
-        // GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        // if (playerObj != null)
-        // {
-        //     player = playerObj.transform;
-
-        //     Collider playerCollider = playerObj.GetComponent<Collider>();
-        //     Collider enemyCollider = GetComponent<Collider>();
-        //     if (playerCollider != null && enemyCollider != null)
-        //     {
-        //         Physics.IgnoreCollision(enemyCollider, playerCollider);
-        //     }
-        // }
         player = Target;
         agent = GetComponent<NavMeshAgent>();
+
         if (agent != null)
         {
             agent.speed = enemyStatus.speed;
@@ -46,7 +33,6 @@ public class EnemyController : MonoBehaviour
 
         animator = GetComponent<Animator>();
         enemyHit = GetComponent<EnemyHit>();
-        _audioManager = GetComponent<EnemyAudioManager>();
     }
     public void HandleHitReaction()
     {
@@ -117,55 +103,6 @@ public class EnemyController : MonoBehaviour
         {
             agent.isStopped = false;
             agent.SetDestination(player.position);
-        }
-        HandleRunAudio();
-    }
-    private void HandleRunAudio()
-    {
-        if (_audioManager == null || agent == null) return;
-
-        bool isMoving = agent.velocity.magnitude > 0.1f && !isHit && !isAttacking && agent.enabled && !agent.isStopped;
-
-        if (isMoving)
-        {
-            if (!wasRunning)
-            {
-                _audioManager.PlayRunLoop();
-                wasRunning = true;
-            }
-        }
-        else
-        {
-            if (wasRunning)
-            {
-                _audioManager.StopRunLoop();
-                wasRunning = false;
-            }
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (enemyStatus != null)
-        {
-            Gizmos.color = Color.red;
-            Vector3 center = transform.position + Vector3.up * (enemyStatus.height / 2f);
-
-            // Desenha linhas para mostrar o cone
-            int segments = 30;
-            float halfAngle = enemyStatus.attackAngle / 2f;
-            float radius = enemyStatus.attackRange;
-            Vector3 forward = transform.forward;
-
-            Vector3 prevPoint = center + Quaternion.Euler(0, -halfAngle, 0) * forward * radius;
-            for (int i = 1; i <= segments; i++)
-            {
-                float angle = -halfAngle + (enemyStatus.attackAngle * i / segments);
-                Vector3 nextPoint = center + Quaternion.Euler(0, angle, 0) * forward * radius;
-                Gizmos.DrawLine(prevPoint, nextPoint);
-                Gizmos.DrawLine(center, nextPoint);
-                prevPoint = nextPoint;
-            }
         }
     }
 
@@ -240,6 +177,29 @@ public class EnemyController : MonoBehaviour
         {
             agent.enabled = true;
             agent.isStopped = false;
+        }
+    }
+
+        private void OnDrawGizmosSelected()
+    {
+        if (enemyStatus != null)
+        {
+            Gizmos.color = Color.red;
+            Vector3 center = transform.position + Vector3.up * (enemyStatus.height / 2f);
+            int segments = 30;
+            float halfAngle = enemyStatus.attackAngle / 2f;
+            float radius = enemyStatus.attackRange;
+            Vector3 forward = transform.forward;
+
+            Vector3 prevPoint = center + Quaternion.Euler(0, -halfAngle, 0) * forward * radius;
+            for (int i = 1; i <= segments; i++)
+            {
+                float angle = -halfAngle + (enemyStatus.attackAngle * i / segments);
+                Vector3 nextPoint = center + Quaternion.Euler(0, angle, 0) * forward * radius;
+                Gizmos.DrawLine(prevPoint, nextPoint);
+                Gizmos.DrawLine(center, nextPoint);
+                prevPoint = nextPoint;
+            }
         }
     }
 
