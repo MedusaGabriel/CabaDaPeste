@@ -1,9 +1,13 @@
 using UnityEngine;
+using UnityEngine.Audio;
 using System.Collections;
 
 public class EnemyAudioManager : MonoBehaviour
 {
     public AudioSource audioSource;
+
+    [Header("Mixer de Áudio")]
+    public AudioMixerGroup outputMixerGroup;
 
     [Header("Clipes de Áudio")]
     public AudioClip runClip;
@@ -26,6 +30,15 @@ public class EnemyAudioManager : MonoBehaviour
 
     [Header("Volume Geral")]
     [Range(0f, 1f)] public float masterVolume = 1f;
+
+    void Awake()
+    {
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (outputMixerGroup != null)
+            audioSource.outputAudioMixerGroup = outputMixerGroup;
+    }
 
     public void PlayRunLoop()
     {
@@ -52,11 +65,13 @@ public class EnemyAudioManager : MonoBehaviour
         audioSource.PlayOneShot(attackClip, attackVolume * masterVolume);
         StartCoroutine(NotifyAttackSoundEnd(attackClip.length));
     }
+
     public void PlayDash()
     {
         audioSource.pitch = dashPitch;
         audioSource.PlayOneShot(dashClip, dashVolume * masterVolume);
     }
+
     public void PlayDeath()
     {
         audioSource.pitch = deathPitch;
