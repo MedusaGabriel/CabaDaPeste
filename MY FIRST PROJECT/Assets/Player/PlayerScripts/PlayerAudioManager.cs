@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class PlayerAudioManager : MonoBehaviour
 {
     public AudioSource audioSource;
+
+    [Header("Mixer de Áudio")]
+    public AudioMixerGroup outputMixerGroup;
 
     [Header("Clipes de Áudio")]
     public AudioClip walkClip;
@@ -27,6 +31,15 @@ public class PlayerAudioManager : MonoBehaviour
 
     [Header("Volume Geral")]
     [Range(0f, 1f)] public float masterVolume = 1f;
+
+    void Awake()
+    {
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (outputMixerGroup != null)
+            audioSource.outputAudioMixerGroup = outputMixerGroup;
+    }
 
     public void PlayWalkLoop()
     {
@@ -69,11 +82,13 @@ public class PlayerAudioManager : MonoBehaviour
         audioSource.pitch = attackPitch;
         audioSource.PlayOneShot(attackClip, attackVolume * masterVolume);
     }
+
     public void PlayDash()
     {
         audioSource.pitch = dashPitch;
         audioSource.PlayOneShot(dashClip, dashVolume * masterVolume);
     }
+
     public void PlayDeath()
     {
         audioSource.pitch = deathPitch;
