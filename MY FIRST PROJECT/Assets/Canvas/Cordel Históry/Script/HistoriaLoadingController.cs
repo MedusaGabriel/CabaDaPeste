@@ -53,7 +53,7 @@ public class HistoriaLoadingController : MonoBehaviour
     void LoadFase1()
     {
         sceneLoaded = true;
-        SceneManager.LoadScene("Level 1");
+        SceneManager.LoadScene("Game");
     }
 
     IEnumerator FadeOut()

@@ -9,6 +9,12 @@ public class EnemyController : MonoBehaviour
     public float chaseDistance = 10f;
     public bool canChasePlayer = true;
 
+
+    public Transform mySpawnPoint;
+    private SpawnEnemy mySpawner;
+
+
+
     private float lastAttackTime = 0f;
     private Transform player;
     private NavMeshAgent agent;
@@ -37,6 +43,18 @@ public class EnemyController : MonoBehaviour
 
         animator = GetComponent<Animator>();
         enemyHit = GetComponent<EnemyHit>();
+    }
+    public void SetSpawner(SpawnEnemy spawner, Transform spawnPoint)
+    {
+        mySpawner = spawner;
+        mySpawnPoint = spawnPoint;
+    }
+    public void OnDeath()
+    {
+        if (mySpawner != null)
+        {
+            mySpawner.OnEnemyDeath(gameObject, mySpawnPoint);
+        }
     }
     public void HandleHitReaction()
     {
