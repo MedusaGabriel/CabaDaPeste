@@ -10,6 +10,7 @@ public class MainMenu : MonoBehaviour
     public GameObject mainMenuCanvas;
     public GameObject creditosCanvas;
     public GameObject opcoesCanvas;
+    public GameObject finalGameCanvas;
 
     public Image fadeImage;
     public float fadeDuration = 1f;
@@ -68,6 +69,15 @@ public class MainMenu : MonoBehaviour
         TocarSomDeClique();
         creditosCanvas.SetActive(false);
         opcoesCanvas.SetActive(false);
+        mainMenuCanvas.SetActive(true);
+
+    }
+
+    public void VoltarAoMenuFinal()
+    {
+        TocarSomDeClique();
+        creditosCanvas.SetActive(false);
+        finalGameCanvas.SetActive(false);
         mainMenuCanvas.SetActive(true);
     }
     // Chama quando clica em "Sair"
