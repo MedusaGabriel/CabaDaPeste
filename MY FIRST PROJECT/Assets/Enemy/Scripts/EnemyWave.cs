@@ -1,21 +1,21 @@
 using UnityEngine;
-using TMPro; // Troque UnityEngine.UI por TMPro
+using TMPro;
 
 public class EnemyWave : MonoBehaviour
 {
-    public GameObject enemyInScena;
-    public GameObject enemyWave;
+    public SpawnEnemy enemyInScenaSpawner;
+    public SpawnEnemy enemyWaveSpawner;
     public GameObject passagem;
-    public GameObject contagemHUD; // Arraste a HUD de contagem aqui
-    public TextMeshProUGUI contagemText; // Arraste o componente TextMeshProUGUI aqui
+    public GameObject contagemHUD;
+    public TextMeshProUGUI contagemText;
 
     private bool waveActivated = false;
     private bool passagemLiberada = false;
 
     void Start()
     {
-        if (enemyWave != null)
-            enemyWave.SetActive(false);
+        if (enemyWaveSpawner != null)
+            enemyWaveSpawner.gameObject.SetActive(false);
 
         if (contagemHUD != null)
             contagemHUD.SetActive(true);
@@ -25,30 +25,30 @@ public class EnemyWave : MonoBehaviour
 
     void Update()
     {
-        if (!waveActivated && enemyInScena != null)
+        if (!waveActivated && enemyInScenaSpawner != null)
         {
             UpdateContagemHUD();
-            if (enemyInScena.transform.childCount == 0)
+            if (enemyInScenaSpawner.GetActiveEnemies() == 0)
             {
-                if (enemyWave != null)
-                    enemyWave.SetActive(true);
+                if (enemyWaveSpawner != null)
+                    enemyWaveSpawner.gameObject.SetActive(true);
                 waveActivated = true;
                 UpdateContagemHUD();
             }
         }
-        else if (waveActivated && !passagemLiberada && enemyWave != null)
+        else if (waveActivated && !passagemLiberada && enemyWaveSpawner != null)
         {
             UpdateContagemHUD();
-            if (enemyWave.transform.childCount == 0)
+            if (enemyWaveSpawner.GetActiveEnemies() == 0)
             {
                 if (passagem != null)
                     passagem.SetActive(false);
                 passagemLiberada = true;
 
-                if (enemyInScena != null)
-                    enemyInScena.SetActive(false);
-                if (enemyWave != null)
-                    enemyWave.SetActive(false);
+                if (enemyInScenaSpawner != null)
+                    enemyInScenaSpawner.gameObject.SetActive(false);
+                if (enemyWaveSpawner != null)
+                    enemyWaveSpawner.gameObject.SetActive(false);
 
                 UpdateContagemHUD(0);
             }
@@ -62,10 +62,10 @@ public class EnemyWave : MonoBehaviour
             int count = overrideCount;
             if (count < 0)
             {
-                if (!waveActivated && enemyInScena != null)
-                    count = enemyInScena.transform.childCount;
-                else if (waveActivated && enemyWave != null)
-                    count = enemyWave.transform.childCount;
+                if (!waveActivated && enemyInScenaSpawner != null)
+                    count = enemyInScenaSpawner.GetActiveEnemies();
+                else if (waveActivated && enemyWaveSpawner != null)
+                    count = enemyWaveSpawner.GetActiveEnemies();
                 else
                     count = 0;
             }

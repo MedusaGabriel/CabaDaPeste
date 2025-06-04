@@ -2,18 +2,20 @@ using UnityEngine;
 
 public class EnemyHit : MonoBehaviour
 {
-    public int minDamage = 10;
-    public int maxDamage = 20;
-     private EnemyStatus enemyStatus;
+    private EnemyStatus enemyStatus;
+
+    void Start()
+    {
+        enemyStatus = GetComponent<EnemyStatus>();
+    }
 
     public int CalculateDamage()
     {
-        int baseDamage = Random.Range(minDamage, maxDamage);
         if (enemyStatus != null)
         {
-            baseDamage += Mathf.RoundToInt(enemyStatus.attack);
+            return Mathf.RoundToInt(enemyStatus.attack);
         }
-        return baseDamage;
+        return 0;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -21,7 +23,7 @@ public class EnemyHit : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             int damage = CalculateDamage();
-            
+            // Aqui você pode aplicar o dano se quiser
         }
     }
 }
