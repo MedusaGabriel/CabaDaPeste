@@ -48,6 +48,21 @@ public class PlayerController : MonoBehaviour
 
             anim.SetFloat("Speed", animSpeed);
         }
+        if (audioManager != null)
+        {
+            if (input.magnitude > 0)
+            {
+                if (isRunning)
+                    audioManager.PlayRunLoop();
+                else
+                    audioManager.PlayWalkLoop();
+            }
+            else
+            {
+                audioManager.StopWalkLoop();
+                audioManager.StopRunLoop();
+            }
+        }
 
         currentSpeed = targetSpeed;
     }

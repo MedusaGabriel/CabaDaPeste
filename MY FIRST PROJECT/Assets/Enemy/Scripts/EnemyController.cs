@@ -4,7 +4,11 @@ using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
+
+    [Header("Chase Settings")]
+    public float chaseDistance = 10f;
     public bool canChasePlayer = true;
+
     private float lastAttackTime = 0f;
     private Transform player;
     private NavMeshAgent agent;
@@ -67,7 +71,6 @@ public class EnemyController : MonoBehaviour
     }
     void Update()
     {
-
         if (agent == null || !agent.enabled)
             return;
 
@@ -83,26 +86,35 @@ public class EnemyController : MonoBehaviour
         Vector3 directionToPlayer = (player.position - transform.position).normalized;
         float angleToPlayer = Vector3.Angle(transform.forward, directionToPlayer);
 
-        if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
+        // Só persegue se o player estiver dentro do chaseDistance
+        if (distanceToPlayer <= chaseDistance)
         {
-            agent.isStopped = true;
+            if (distanceToPlayer <= enemyStatus.attackRange && angleToPlayer <= enemyStatus.attackAngle / 2f)
+            {
+                agent.isStopped = true;
 
-            if (!isAttacking && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
-            {
-                animator.SetTrigger("Attack");
-                isAttacking = true;
-                lastAttackTime = Time.time;
+                if (!isAttacking && Time.time >= lastAttackTime + enemyStatus.attackCooldown)
+                {
+                    animator.SetTrigger("Attack");
+                    isAttacking = true;
+                    lastAttackTime = Time.time;
+                }
+                else if (canCombo && distanceToPlayer <= enemyStatus.attackRange)
+                {
+                    animator.SetTrigger("ComboAttack");
+                    canCombo = false;
+                }
             }
-            else if (canCombo && distanceToPlayer <= enemyStatus.attackRange)
+            else
             {
-                animator.SetTrigger("ComboAttack");
-                canCombo = false;
+                agent.isStopped = false;
+                agent.SetDestination(player.position);
             }
         }
         else
         {
-            agent.isStopped = false;
-            agent.SetDestination(player.position);
+            agent.isStopped = true;
+            // Aqui você pode adicionar lógica de idle ou patrulha, se quiser
         }
     }
 
@@ -180,7 +192,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-        private void OnDrawGizmosSelected()
+    private void OnDrawGizmosSelected()
     {
         if (enemyStatus != null)
         {

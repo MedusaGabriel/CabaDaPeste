@@ -1,17 +1,10 @@
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
 {
     [Header("Health Settings")]
     private float currentHealth;
-
-    [Header("Health UI")]
-    public Slider healthSlider;
-    public Vector3 sliderOffset = new Vector3(0, 2f, 0);
     public Animator enemyAnimator;
-    private GameObject sliderWorldObject;
     public GameObject playerGameObject;
     private EnemyStatus enemyStatus;
 
@@ -33,18 +26,11 @@ public class EnemyHealth : MonoBehaviour
                 playerGameObject = playerObj;
         }
 
-        if (healthSlider != null)
-        {
-            healthSlider.gameObject.SetActive(false);
-            CreateWorldSpaceSlider();
-        }
-
     }
 
     void Update()
     {
-        UpdateHealthUI();
-        FaceSliderToCamera();
+
     }
 
     public void TakeDamage(float damage)
@@ -57,7 +43,6 @@ public class EnemyHealth : MonoBehaviour
             if (currentHealth > 0)
             {
                 enemyAnimator.SetTrigger("GetHit");
-                
             }
             else
             {
@@ -65,7 +50,6 @@ public class EnemyHealth : MonoBehaviour
                 enemyAnimator.SetBool("IsDead", true);
                 var agent = GetComponent<UnityEngine.AI.NavMeshAgent>();
                 if (agent != null) agent.enabled = false;
-
             }
         }
 
@@ -86,47 +70,13 @@ public class EnemyHealth : MonoBehaviour
         StartCoroutine(WaitAndDestroy());
     }
 
-    private IEnumerator WaitAndDestroy()
+    private System.Collections.IEnumerator WaitAndDestroy()
     {
         yield return new WaitForSeconds(2f);
         GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
         FindFirstObjectByType<AttackSpecial>()?.AddCharge();
+        FindFirstObjectByType<BuffPlayer>()?.OnEnemyKilled();
         Destroy(gameObject);
     }
 
-    void UpdateHealthUI()
-    {
-        if (healthSlider == null) return;
-
-        float healthPercent = currentHealth / enemyStatus.maxHealth;
-        healthSlider.value = healthPercent;
-
-        healthSlider.gameObject.SetActive(currentHealth > 0);
-    }
-
-    void FaceSliderToCamera()
-    {
-        if (sliderWorldObject != null && Camera.main != null)
-        {
-            sliderWorldObject.transform.forward = -Camera.main.transform.forward;
-        }
-    }
-
-    void CreateWorldSpaceSlider()
-    {
-        sliderWorldObject = new GameObject("EnemyHealthSlider");
-        sliderWorldObject.transform.SetParent(transform);
-        sliderWorldObject.transform.localPosition = sliderOffset;
-
-        Canvas canvas = sliderWorldObject.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.WorldSpace;
-        canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(2f, 0.5f);
-
-        Slider worldSlider = Instantiate(healthSlider, sliderWorldObject.transform);
-        worldSlider.transform.localPosition = Vector3.zero;
-        worldSlider.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-
-        healthSlider = worldSlider;
-        healthSlider.value = 1;
-    }
 }

@@ -2,10 +2,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class BackToMenu : MonoBehaviour
 {
+    public GameObject hudRoot;
+
     public void GoToMainMenu()
     {
-            Debug.Log("Botão Menu Fase pressionado!");
         Time.timeScale = 1f;
         SceneManager.LoadScene(0);
+    }
+    public void ResumeAndHideHUD()
+    {
+        Time.timeScale = 1f;
+        if (hudRoot != null)
+            hudRoot.SetActive(false);
     }
 }

@@ -5,10 +5,6 @@ public class PlayerDash : MonoBehaviour
     [Header("Dash Settings")]
     public string dashParam = "Dash";
     public string dashTrigger = "IsDash";
-
-    [Header("Dash HUD")]
-    public GameObject fillDashHUD;
-
     private Rigidbody _rigidbody;
     private Animator animator;
     private float lastDashTime = -Mathf.Infinity;
@@ -26,10 +22,7 @@ public class PlayerDash : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _playerController = GetComponent<PlayerController>();
         animator = GetComponent<Animator>();
-        if (fillDashHUD != null)
-            fillDashHUD.SetActive(true);
-        else
-            Debug.LogError("Atribua o FillDash HUD no Inspector!");
+        
     }
 
     void Update()
@@ -38,8 +31,6 @@ public class PlayerDash : MonoBehaviour
         {
             TryDash();
         }
-
-        UpdateDashHUD();
     }
 
     void TryDash()
@@ -92,14 +83,6 @@ public class PlayerDash : MonoBehaviour
         _rigidbody.useGravity = originalGravity;
 
         isDashing = false;
-    }
-
-    void UpdateDashHUD()
-    {
-        if (fillDashHUD == null) return;
-
-        bool dashDisponivel = (Time.time > lastDashTime + playerStatus.dashCooldown);
-        fillDashHUD.SetActive(dashDisponivel);
     }
 
     public void EnablePlayerController()

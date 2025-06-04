@@ -5,13 +5,14 @@ using UnityEngine.UI;
 public class PlayerHealth : MonoBehaviour
 {
     [Header("Status Gerais")]
+    public int maxHealth = 100; // Adicione aqui
     private int _currentHealth;
     public int currentHealth
     {
         get => _currentHealth;
         set
         {
-            _currentHealth = Mathf.Clamp(value, 0, playerStatus.maxHealth);
+            _currentHealth = Mathf.Clamp(value, 0, maxHealth);
             if (_currentHealth <= 0 && !isDead)
             {
                 Die();
@@ -19,7 +20,6 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
-    private PlayerStatus playerStatus;
     private bool isDead = false;
     public Animator playerAnimator;
     public CanvasPopUp canvasPopUpPrefab;
@@ -35,15 +35,14 @@ public class PlayerHealth : MonoBehaviour
 
     void Start()
     {
-        playerStatus = GetComponent<PlayerStatus>();
-        currentHealth = playerStatus.maxHealth;
+        currentHealth = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
+
         if (healthSlider != null)
         {
             healthSlider.gameObject.SetActive(true);
-            healthSlider.value = (float)currentHealth / playerStatus.maxHealth;
+            healthSlider.value = (float)currentHealth / maxHealth;
         }
         else
         {
@@ -54,7 +53,6 @@ public class PlayerHealth : MonoBehaviour
             lifeStaminaHUD.SetActive(true);
         }
     }
-
 
     public void TakeDamage(int damage)
     {
@@ -74,7 +72,7 @@ public class PlayerHealth : MonoBehaviour
 
     public void UpdateHealthUI()
     {
-        float fill = (float)currentHealth / playerStatus.maxHealth;
+        float fill = (float)currentHealth / maxHealth;
         healthSlider.value = fill;
     }
 
