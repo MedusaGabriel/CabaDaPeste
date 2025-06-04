@@ -70,7 +70,7 @@ public class SpawnEnemy : MonoBehaviour
         {
             Debug.Log($"Desativando spawnPoint: {spawnPoint.name}");
             spawnPoint.gameObject.SetActive(false);
-        }
+        } 
     }
 
     public void SpawnAt(Vector3 position, Transform spawnPoint = null)
