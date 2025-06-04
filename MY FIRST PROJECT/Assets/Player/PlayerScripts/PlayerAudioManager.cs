@@ -3,7 +3,8 @@ using UnityEngine.Audio;
 
 public class PlayerAudioManager : MonoBehaviour
 {
-    public AudioSource audioSource;
+    public AudioSource loopAudioSource;      // Para sons de andar/correr
+    public AudioSource sfxAudioSource;       // Para ataque e morte
 
     [Header("Mixer de Áudio")]
     public AudioMixerGroup outputMixerGroup;
@@ -12,21 +13,12 @@ public class PlayerAudioManager : MonoBehaviour
     public AudioClip walkClip;
     public AudioClip runClip;
     public AudioClip attackClip;
-    public AudioClip dashClip;
     public AudioClip deathClip;
-
-    [Header("Volumes Individuais")]
-    [Range(0f, 1f)] public float walkVolume = 1f;
-    [Range(0f, 1f)] public float runVolume = 1f;
-    [Range(0f, 1f)] public float attackVolume = 1f;
-    [Range(0f, 1f)] public float dashVolume = 1f;
-    [Range(0f, 1f)] public float deathVolume = 1f;
 
     [Header("Pitch Individual")]
     [Range(0.5f, 2f)] public float walkPitch = 1f;
     [Range(0.5f, 2f)] public float runPitch = 1f;
     [Range(0.5f, 2f)] public float attackPitch = 1f;
-    [Range(0.5f, 2f)] public float dashPitch = 1f;
     [Range(0.5f, 2f)] public float deathPitch = 1f;
 
     [Header("Volume Geral")]
@@ -34,64 +26,82 @@ public class PlayerAudioManager : MonoBehaviour
 
     void Awake()
     {
-        if (audioSource == null)
-            audioSource = gameObject.AddComponent<AudioSource>();
+        if (loopAudioSource == null)
+        {
+            loopAudioSource = gameObject.AddComponent<AudioSource>();
+            loopAudioSource.loop = true;
+        }
+
+        if (sfxAudioSource == null)
+        {
+            sfxAudioSource = gameObject.AddComponent<AudioSource>();
+            sfxAudioSource.loop = false;
+        }
 
         if (outputMixerGroup != null)
-            audioSource.outputAudioMixerGroup = outputMixerGroup;
+        {
+            loopAudioSource.outputAudioMixerGroup = outputMixerGroup;
+            sfxAudioSource.outputAudioMixerGroup = outputMixerGroup;
+        }
     }
 
     public void PlayWalkLoop()
     {
-        if (audioSource.clip != walkClip || !audioSource.isPlaying)
-        {
-            audioSource.clip = walkClip;
-            audioSource.volume = walkVolume * masterVolume;
-            audioSource.pitch = walkPitch;
-            audioSource.loop = true;
-            audioSource.Play();
-        }
+        PlayLoop(walkClip, walkPitch);
     }
 
     public void StopWalkLoop()
     {
-        if (audioSource.clip == walkClip && audioSource.isPlaying)
-            audioSource.Stop();
+        StopLoop(walkClip);
     }
 
     public void PlayRunLoop()
     {
-        if (audioSource.clip != runClip || !audioSource.isPlaying)
-        {
-            audioSource.clip = runClip;
-            audioSource.volume = runVolume * masterVolume;
-            audioSource.pitch = runPitch;
-            audioSource.loop = true;
-            audioSource.Play();
-        }
+        PlayLoop(runClip, runPitch);
     }
 
     public void StopRunLoop()
     {
-        if (audioSource.clip == runClip && audioSource.isPlaying)
-            audioSource.Stop();
+        StopLoop(runClip);
     }
 
     public void PlayAttack()
     {
-        audioSource.pitch = attackPitch;
-        audioSource.PlayOneShot(attackClip, attackVolume * masterVolume);
-    }
-
-    public void PlayDash()
-    {
-        audioSource.pitch = dashPitch;
-        audioSource.PlayOneShot(dashClip, dashVolume * masterVolume);
+        PlaySFX(attackClip, attackPitch);
     }
 
     public void PlayDeath()
     {
-        audioSource.pitch = deathPitch;
-        audioSource.PlayOneShot(deathClip, deathVolume * masterVolume);
+        PlaySFX(deathClip, deathPitch);
+    }
+
+    private void PlayLoop(AudioClip clip, float pitch)
+    {
+        if (clip == null) return;
+
+        if (loopAudioSource.clip != clip || !loopAudioSource.isPlaying)
+        {
+            loopAudioSource.clip = clip;
+            loopAudioSource.volume = masterVolume;
+            loopAudioSource.pitch = pitch;
+            loopAudioSource.Play();
+        }
+    }
+
+    private void StopLoop(AudioClip clip)
+    {
+        if (loopAudioSource.clip == clip && loopAudioSource.isPlaying)
+        {
+            loopAudioSource.Stop();
+            loopAudioSource.clip = null;
+        }
+    }
+
+    private void PlaySFX(AudioClip clip, float pitch)
+    {
+        if (clip == null) return;
+
+        sfxAudioSource.pitch = pitch;
+        sfxAudioSource.PlayOneShot(clip, masterVolume);
     }
 }
