@@ -58,16 +58,20 @@ public class AttackSpecial : MonoBehaviour
         if (animator != null)
             animator.SetTrigger("SpecialMove");
 
-        // Aplica dano e knockback em inimigos próximos
+        // Chama o método separado para aplicar dano e knockback
+        currentCharges = 0;
+        UpdateHUD();
+    }
+
+    public void ApplyDamageToEnemies()
+    {
         Collider[] hits = Physics.OverlapSphere(transform.position, specialRange, enemyLayer);
         foreach (var hit in hits)
         {
-            // Aplica dano se o inimigo tiver EnemyHealth
             var enemyHealth = hit.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
                 enemyHealth.TakeDamage(specialDamage);
 
-            // Aplica knockback se tiver Rigidbody
             var rb = hit.GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -75,9 +79,6 @@ public class AttackSpecial : MonoBehaviour
                 rb.AddForce(dir * specialKnockback, ForceMode.Impulse);
             }
         }
-
-        currentCharges = 0;
-        UpdateHUD();
     }
 
     public void FinishSpecialEffect()

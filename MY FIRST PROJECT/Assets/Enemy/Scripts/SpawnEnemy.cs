@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 public class SpawnEnemy : MonoBehaviour
@@ -10,6 +11,10 @@ public class SpawnEnemy : MonoBehaviour
     public Transform[] spawnPointsParte2;
     public int poolSize = 20;
 
+    [Header("UI")]
+    public Canvas finalCanvas;
+    public float canvasDisplayTime = 3f;
+
     [Header("Estados")]
     public bool parte2Ativa = false;
     public bool todasOndasConcluidas = false;
@@ -19,7 +24,9 @@ public class SpawnEnemy : MonoBehaviour
 
     void Start()
     {
-        // Inicializa a pool
+        if (finalCanvas != null)
+            finalCanvas.gameObject.SetActive(false); // Garante que comece desativado
+
         for (int i = 0; i < poolSize; i++)
         {
             GameObject enemy = Instantiate(enemyPrefab, Vector3.zero, Quaternion.identity);
@@ -27,13 +34,11 @@ public class SpawnEnemy : MonoBehaviour
             enemyPool.Enqueue(enemy);
         }
 
-        // Desativa todos os spawnPoints da parte 2 no início
         foreach (var sp in spawnPointsParte2)
         {
             sp.gameObject.SetActive(false);
         }
 
-        // Ativa os inimigos da parte 1
         foreach (var sp in spawnPointsParte1)
         {
             SpawnAt(sp.position, sp);
@@ -58,8 +63,19 @@ public class SpawnEnemy : MonoBehaviour
         {
             Debug.Log("TODAS AS ONDAS CONCLUÍDAS!");
             todasOndasConcluidas = true;
+
+            if (finalCanvas != null)
+                StartCoroutine(ShowFinalCanvas());
         }
     }
+
+    IEnumerator ShowFinalCanvas()
+    {
+        finalCanvas.gameObject.SetActive(true);
+        yield return new WaitForSeconds(canvasDisplayTime);
+        finalCanvas.gameObject.SetActive(false);
+    }
+
     public void OnEnemyDeath(GameObject enemy, Transform spawnPoint = null)
     {
         enemy.SetActive(false);
@@ -92,6 +108,7 @@ public class SpawnEnemy : MonoBehaviour
         if (spawnPoint != null)
             spawnPoint.gameObject.SetActive(true);
     }
+
     public int GetActiveSpawnPointsPart(int part)
     {
         int count = 0;
@@ -102,8 +119,9 @@ public class SpawnEnemy : MonoBehaviour
 
         return count;
     }
+
     public int GetActiveSpawnPoints()
     {
         return GetActiveSpawnPointsPart(1) + GetActiveSpawnPointsPart(2);
-    }
+    }
 }

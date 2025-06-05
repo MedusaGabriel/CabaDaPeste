@@ -51,6 +51,7 @@ public class EnemyController : MonoBehaviour
     }
     public void OnDeath()
     {
+        // Avisa o spawner que este inimigo morreu e qual era seu spawnPoint
         if (mySpawner != null)
         {
             mySpawner.OnEnemyDeath(gameObject, mySpawnPoint);
