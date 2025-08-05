@@ -1,53 +1,23 @@
-# 📘 Guia de Branches e Comandos Git - Projeto
+# 📘 Projeto *CabaDaPeste*
 
-## 🧠 Estrutura das Branches
+**CabaDaPeste** é um jogo 3D desenvolvido com base na figura histórica de **Lampião**, utilizando as ferramentas **Unity** e **Blender**.  
+O projeto tem como foco o aprendizado prático em desenvolvimento de jogos, sendo realizado no contexto acadêmico da faculdade, e foi o **projeto vencedor da GameJam UNINASSAU 2025**.
 
-- **main**  
-  Versão final e estável do projeto.  
-  ⚠️ **Atualmente só Gabriel** irá manipular essa branch.
+Trata-se de um jogo de ação com progressão por fases, inspirado em títulos como *Vampire Survivors*, com visual isométrico e opção de câmera em terceira pessoa. O jogo aplica conceitos técnicos de design de fases, programação de sistemas, criação de assets 3D e pesquisa temática.
 
-- **development**  
-  Central de desenvolvimento. Sempre terá a versão mais atual em progresso.  
-  Todos os desenvolvedores devem **puxar as alterações** a partir desta branch.
-  Envios para essa branch e responsabilidade do **Gabriel**.
+## 👥 Equipe de Desenvolvimento
 
-- **gabriel**  
-  Branch do Gabriel.
+- **Gabriel**  
+  Criador do repositório e responsável pelo desenvolvimento geral do projeto, incluindo a estrutura dos sistemas, lógica de jogo e integração dos recursos.
 
-- **brian**  
-  Branch do Brian.
+- **Ryan**  
+  Responsável pelo **game level design**, atuando na construção das fases, posicionamento de inimigos e organização dos ambientes.
 
-- **ryan**  
-  Branch do Ryan.
+- **Anderson Djalma**  
+  Responsável pela **Game Art**, incluindo modelagem, texturização e desenvolvimento dos elementos visuais utilizados no jogo.
 
--**Sera criado uma branch para o Anderson e Marcelo**
----
+- **Bryan**  
+  Auxiliar no desenvolvimento, contribuindo com a implementação de funcionalidades, testes e ajustes técnicos.
 
-## 🚀 Regras IMPORTANTES!
-
-1. **Nunca envie ou puxe alterações da `main`.**
-2. Sempre trabalhe na **sua própria branch** (ex: `gabriel` ou `brian`).
-3. Ao finalizar uma alteração, qualquer que seja, **envie para a sua branch** pois assim ira fica um registro de timeline do que você fez ou trabalho gerando um melhor controle.
-4. A `development` será usada por todos para manter o projeto sincronizado.
-5. Atualmente Gabriel será responsável por **atualizar a `main` a partir da `development`**, quando tudo estiver testado e funcionando.
-6. **SEMPRE VERIFIQUE QUAL BRANCH VOCÊ ESTA** Você pode verificar atraves do git branch 
-
-
----
-
-## 🛠️ Comandos Git
-
-### 👉 1. Trocar de branch
-
-`git checkout nome-da-branch`
-Esse comando serve para que você mude a branch para outra exemplo: 
-`git checkout gabriel`  **Troquei para branch gabriel**
-
-### 👉 2. Puxar atualizações da development
-
-`git pull origin development` 
-Esse comando ele ira puxar as últimas alterações da development para sua branch local atual 
-
-### 👉 3. Enviar as alterações para o GitHub
-
-`git push origin nome-da-branch`**Envia as alterações da sua branch local para sua branch do github.** 
+- **Marcelo**  
+  Responsável pela **pesquisa de materiais e referências**, garantindo que os elementos do jogo estejam alinhados ao contexto proposto.
