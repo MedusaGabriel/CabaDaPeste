@@ -22,9 +22,10 @@ O jogo apresenta um sistema de progressão por fases e é inspirado em títulos 
 - **Marcelo**  
   Responsável pela **pesquisa de materiais e referências**, assegurando a coerência temática e conceitual do projeto.
 
-- **Menção honrosa: Raul Nunes e Lucas X. Chargas**  
+- **Menção honrosa: Raul Nunes e Lucas X. Chargas, Vinicius Silva**  
   Raul contribuiu com artes, referências visuais e apoio na edição de áudios e efeitos sonoros utilizados no projeto.  
   Lucas X. Chargas, professor e mentor durante o curso, ofereceu orientações valiosas, dicas técnicas e ensinamentos fundamentais sobre o uso da Unity, sendo essencial no desenvolvimento do projeto.
+  Vinicius ajudou na ideia da banana.
 
 ---
 
